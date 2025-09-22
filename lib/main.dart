@@ -12,6 +12,7 @@ import 'screens/uuid_screen.dart';
 import 'screens/url_parser_screen.dart';
 import 'screens/jwt_decoder_screen.dart';
 import 'screens/cron_expression_screen.dart';
+import 'screens/color_picker_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -124,6 +125,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'CRON Expression Parser',
       'description': 'Parse CRON expressions into English and calculate next occurrences',
       'screen': const CronExpressionScreen(),
+    },
+    {
+      'icon': Icons.colorize,
+      'title': 'Color Picker',
+      'description': 'Pick colors from screen and convert between color formats',
+      'screen': const ColorPickerScreen(),
     },
   ];
 
@@ -347,6 +354,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'CRON Expression Parser',
                         'Parse CRON expressions into English and calculate next occurrences',
                         () => _navigateToTool(const CronExpressionScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.colorize,
+                        'Color Picker',
+                        'Pick colors from screen and convert between color formats',
+                        () => _navigateToTool(const ColorPickerScreen()),
                       ),
                     ],
                   ),
