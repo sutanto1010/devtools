@@ -5,6 +5,7 @@ import 'screens/csv_to_json_screen.dart';
 import 'screens/json_explorer_screen.dart';
 import 'screens/base64_screen.dart';
 import 'screens/gpg_screen.dart';
+import 'screens/symmetric_encryption_screen.dart';
 import 'screens/dns_scanner_screen.dart';
 import 'screens/unit_converter_screen.dart';
 import 'screens/uuid_screen.dart';
@@ -79,6 +80,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'GPG Encrypt/Decrypt',
       'description': 'Encrypt and decrypt text using GPG-style encryption',
       'screen': const GpgScreen(),
+    },
+    {
+      'icon': Icons.lock,
+      'title': 'Symmetric Encryption',
+      'description': 'Encrypt and decrypt text using AES symmetric encryption',
+      'screen': const SymmetricEncryptionScreen(),
     },
     {
       'icon': Icons.dns,
@@ -270,6 +277,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'GPG Encrypt/Decrypt',
                         'Encrypt and decrypt text using GPG-style encryption',
                         () => _navigateToTool(const GpgScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.lock,
+                        'Symmetric Encryption',
+                        'Encrypt and decrypt text using AES symmetric encryption',
+                        () => _navigateToTool(const SymmetricEncryptionScreen()),
                       ),
                       const Divider(),
                       _buildToolCard(
