@@ -5,6 +5,7 @@ import 'screens/csv_to_json_screen.dart';
 import 'screens/json_explorer_screen.dart';
 import 'screens/base64_screen.dart';
 import 'screens/gpg_screen.dart';
+import 'screens/dns_scanner_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -75,6 +76,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'GPG Encrypt/Decrypt',
       'description': 'Encrypt and decrypt text using GPG-style encryption',
       'screen': const GpgScreen(),
+    },
+    {
+      'icon': Icons.dns,
+      'title': 'DNS Scanner',
+      'description': 'Scan and lookup DNS records for domains',
+      'screen': const DnsScannerScreen(),
     },
   ];
 
@@ -242,6 +249,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'GPG Encrypt/Decrypt',
                         'Encrypt and decrypt text using GPG-style encryption',
                         () => _navigateToTool(const GpgScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.dns,
+                        'DNS Scanner',
+                        'Scan and lookup DNS records for domains',
+                        () => _navigateToTool(const DnsScannerScreen()),
                       ),
                     ],
                   ),
