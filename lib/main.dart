@@ -10,6 +10,8 @@ import 'screens/dns_scanner_screen.dart';
 import 'screens/unit_converter_screen.dart';
 import 'screens/uuid_screen.dart';
 import 'screens/url_parser_screen.dart';
+import 'screens/jwt_decoder_screen.dart';
+import 'screens/cron_expression_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -88,6 +90,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'screen': const SymmetricEncryptionScreen(),
     },
     {
+      'icon': Icons.token,
+      'title': 'JWT Decoder',
+      'description': 'Decode and analyze JSON Web Tokens (JWT)',
+      'screen': const JwtDecoderScreen(),
+    },
+    {
       'icon': Icons.dns,
       'title': 'DNS Scanner',
       'description': 'Scan and lookup DNS records for domains',
@@ -110,6 +118,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'URL Parser',
       'description': 'Parse URLs into a tree view structure with detailed analysis',
       'screen': const UrlParserScreen(),
+    },
+    {
+      'icon': Icons.schedule,
+      'title': 'CRON Expression Parser',
+      'description': 'Parse CRON expressions into English and calculate next occurrences',
+      'screen': const CronExpressionScreen(),
     },
   ];
 
@@ -289,6 +303,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       const Divider(),
                       _buildToolCard(
                         context,
+                        Icons.token,
+                        'JWT Decoder',
+                        'Decode and analyze JSON Web Tokens (JWT)',
+                        () => _navigateToTool(const JwtDecoderScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
                         Icons.dns,
                         'DNS Scanner',
                         'Scan and lookup DNS records for domains',
@@ -317,6 +339,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'URL Parser',
                         'Parse URLs into a tree view structure with detailed analysis',
                         () => _navigateToTool(const UrlParserScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.schedule,
+                        'CRON Expression Parser',
+                        'Parse CRON expressions into English and calculate next occurrences',
+                        () => _navigateToTool(const CronExpressionScreen()),
                       ),
                     ],
                   ),
