@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/json_formatter_screen.dart';
 import 'screens/yaml_formatter_screen.dart';
 import 'screens/csv_to_json_screen.dart';
+import 'screens/json_explorer_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,6 +55,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'CSV to JSON',
       'description': 'Convert CSV data to JSON format',
       'screen': const CsvToJsonScreen(),
+    },
+    {
+      'icon': Icons.explore,
+      'title': 'JSON Explorer',
+      'description': 'Interactive JSON tree explorer with search and analysis',
+      'screen': const JsonExplorerScreen(),
     },
   ];
 
@@ -197,6 +204,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'CSV to JSON Converter',
                         'Convert CSV data to JSON format',
                         () => _navigateToTool(const CsvToJsonScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.explore,
+                        'JSON Explorer',
+                        'Interactive JSON tree explorer with search and analysis',
+                        () => _navigateToTool(const JsonExplorerScreen()),
                       ),
                     ],
                   ),
