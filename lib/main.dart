@@ -6,6 +6,7 @@ import 'screens/json_explorer_screen.dart';
 import 'screens/base64_screen.dart';
 import 'screens/gpg_screen.dart';
 import 'screens/dns_scanner_screen.dart';
+import 'screens/unit_converter_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -82,6 +83,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'DNS Scanner',
       'description': 'Scan and lookup DNS records for domains',
       'screen': const DnsScannerScreen(),
+    },
+    {
+      'icon': Icons.straighten,
+      'title': 'Unit Converter',
+      'description': 'Convert between different units of measurement',
+      'screen': const UnitConverterScreen(),
     },
   ];
 
@@ -257,6 +264,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'DNS Scanner',
                         'Scan and lookup DNS records for domains',
                         () => _navigateToTool(const DnsScannerScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.straighten,
+                        'Unit Converter',
+                        'Convert between different units of measurement',
+                        () => _navigateToTool(const UnitConverterScreen()),
                       ),
                     ],
                   ),
