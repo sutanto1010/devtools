@@ -7,6 +7,8 @@ import 'screens/base64_screen.dart';
 import 'screens/gpg_screen.dart';
 import 'screens/dns_scanner_screen.dart';
 import 'screens/unit_converter_screen.dart';
+import 'screens/uuid_screen.dart';
+import 'screens/url_parser_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -89,6 +91,18 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'Unit Converter',
       'description': 'Convert between different units of measurement',
       'screen': const UnitConverterScreen(),
+    },
+    {
+      'icon': Icons.fingerprint,
+      'title': 'UUID Generator/Validator',
+      'description': 'Generate and validate UUIDs (v1 and v4)',
+      'screen': const UuidScreen(),
+    },
+    {
+      'icon': Icons.link,
+      'title': 'URL Parser',
+      'description': 'Parse URLs into a tree view structure with detailed analysis',
+      'screen': const UrlParserScreen(),
     },
   ];
 
@@ -272,6 +286,22 @@ class _MyHomePageState extends State<MyHomePage> {
                         'Unit Converter',
                         'Convert between different units of measurement',
                         () => _navigateToTool(const UnitConverterScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.fingerprint,
+                        'UUID Generator/Validator',
+                        'Generate and validate UUIDs (v1 and v4)',
+                        () => _navigateToTool(const UuidScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.link,
+                        'URL Parser',
+                        'Parse URLs into a tree view structure with detailed analysis',
+                        () => _navigateToTool(const UrlParserScreen()),
                       ),
                     ],
                   ),
