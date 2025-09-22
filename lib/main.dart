@@ -4,6 +4,7 @@ import 'screens/yaml_formatter_screen.dart';
 import 'screens/csv_to_json_screen.dart';
 import 'screens/json_explorer_screen.dart';
 import 'screens/base64_screen.dart';
+import 'screens/gpg_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -68,6 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'Base64 Encoder/Decoder',
       'description': 'Encode and decode Base64 strings',
       'screen': const Base64Screen(),
+    },
+    {
+      'icon': Icons.enhanced_encryption,
+      'title': 'GPG Encrypt/Decrypt',
+      'description': 'Encrypt and decrypt text using GPG-style encryption',
+      'screen': const GpgScreen(),
     },
   ];
 
@@ -227,6 +234,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'Base64 Encoder/Decoder',
                         'Encode and decode Base64 strings',
                         () => _navigateToTool(const Base64Screen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.enhanced_encryption,
+                        'GPG Encrypt/Decrypt',
+                        'Encrypt and decrypt text using GPG-style encryption',
+                        () => _navigateToTool(const GpgScreen()),
                       ),
                     ],
                   ),
