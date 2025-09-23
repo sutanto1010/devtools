@@ -13,6 +13,7 @@ import 'screens/url_parser_screen.dart';
 import 'screens/jwt_decoder_screen.dart';
 import 'screens/cron_expression_screen.dart';
 import 'screens/color_picker_screen.dart';
+import 'screens/diff_checker_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -131,6 +132,12 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'Color Picker',
       'description': 'Pick colors from screen and convert between color formats',
       'screen': const ColorPickerScreen(),
+    },
+    {
+      'icon': Icons.compare_arrows,
+      'title': 'Diff Checker',
+      'description': 'Compare two texts and highlight differences line by line',
+      'screen': const DiffCheckerScreen(),
     },
   ];
 
@@ -362,6 +369,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         'Color Picker',
                         'Pick colors from screen and convert between color formats',
                         () => _navigateToTool(const ColorPickerScreen()),
+                      ),
+                      const Divider(),
+                      _buildToolCard(
+                        context,
+                        Icons.compare_arrows,
+                        'Diff Checker',
+                        'Compare two texts and highlight differences line by line',
+                        () => _navigateToTool(const DiffCheckerScreen()),
                       ),
                     ],
                   ),
