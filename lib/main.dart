@@ -516,7 +516,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         margin: const EdgeInsets.only(bottom: 8.0),
                         child: ListTile(
                           leading: Icon(
-                            historyItem['icon'],
+                            IconData(historyItem['iconCodePoint']),
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           title: Text(historyItem['title']),
@@ -534,7 +534,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   ),
                                 ),
                               Text(
-                                'Used ${historyItem['usageCount']} times • ${_formatTimestamp(historyItem['timestamp'])}',
+                                _formatTimestamp(historyItem['timestamp']),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
@@ -542,7 +542,38 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               ),
                             ],
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Delete History Item'),
+                                      content: const Text('Are you sure you want to delete this history item?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            Navigator.pop(context);
+                                            await _dbHelper.deleteHistoryItem(historyItem['historyId']);
+                                            await _loadRecentlyUsedTools();
+                                          },
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                              const Icon(Icons.arrow_forward_ios),
+                            ],
+                          ),
                           onTap: () => _navigateToHistoryItem(historyItem),
                         ),
                       );

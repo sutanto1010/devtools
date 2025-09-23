@@ -19,8 +19,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'devtools_history.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Increment version to trigger migration
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -33,10 +34,17 @@ class DatabaseHelper {
         tool_description TEXT NOT NULL,
         tool_icon_code_point INTEGER NOT NULL,
         session_data TEXT,
-        timestamp INTEGER NOT NULL,
-        usage_count INTEGER DEFAULT 1
+        timestamp INTEGER NOT NULL
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Remove usage_count column and recreate table for individual entries
+      await db.execute('DROP TABLE IF EXISTS tool_history');
+      await _onCreate(db, newVersion);
+    }
   }
 
   Future<void> addToolUsage({
@@ -48,42 +56,18 @@ class DatabaseHelper {
   }) async {
     final db = await database;
     
-    // Check if tool already exists in history
-    final existing = await db.query(
+    // Always insert new record for individual history tracking
+    await db.insert(
       'tool_history',
-      where: 'tool_id = ?',
-      whereArgs: [toolId],
-      orderBy: 'timestamp DESC',
-      limit: 1,
+      {
+        'tool_id': toolId,
+        'tool_title': toolTitle,
+        'tool_description': toolDescription,
+        'tool_icon_code_point': iconCodePoint,
+        'session_data': sessionData != null ? json.encode(sessionData) : null,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      },
     );
-
-    if (existing.isNotEmpty) {
-      // Update existing record
-      await db.update(
-        'tool_history',
-        {
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'usage_count': (existing.first['usage_count'] as int ) + 1,
-          'session_data': sessionData != null ? json.encode(sessionData) : null,
-        },
-        where: 'id = ?',
-        whereArgs: [existing.first['id']],
-      );
-    } else {
-      // Insert new record
-      await db.insert(
-        'tool_history',
-        {
-          'tool_id': toolId,
-          'tool_title': toolTitle,
-          'tool_description': toolDescription,
-          'tool_icon_code_point': iconCodePoint,
-          'session_data': sessionData != null ? json.encode(sessionData) : null,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'usage_count': 1,
-        },
-      );
-    }
   }
 
   Future<List<Map<String, dynamic>>> getRecentTools({int limit = 10}) async {
@@ -103,7 +87,7 @@ class DatabaseHelper {
           ? json.decode(row['session_data'] as String) 
           : null,
       'timestamp': DateTime.fromMillisecondsSinceEpoch(row['timestamp'] as int),
-      'usageCount': row['usage_count'],
+      'historyId': row['id'], // Add unique history ID
     }).toList();
   }
 
@@ -123,7 +107,7 @@ class DatabaseHelper {
           ? json.decode(row['session_data'] as String) 
           : null,
       'timestamp': DateTime.fromMillisecondsSinceEpoch(row['timestamp'] as int),
-      'usageCount': row['usage_count'],
+      'historyId': row['id'], // Add unique history ID
     }).toList();
   }
 
@@ -145,15 +129,26 @@ class DatabaseHelper {
 
   Future<void> updateToolSessionData(String toolId, Map<String, dynamic> sessionData) async {
     final db = await database;
-    await db.update(
+    // Update the most recent entry for this tool
+    final recentEntry = await db.query(
       'tool_history',
-      {
-        'session_data': json.encode(sessionData),
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      },
       where: 'tool_id = ?',
       whereArgs: [toolId],
+      orderBy: 'timestamp DESC',
+      limit: 1,
     );
+    
+    if (recentEntry.isNotEmpty) {
+      await db.update(
+        'tool_history',
+        {
+          'session_data': json.encode(sessionData),
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        },
+        where: 'id = ?',
+        whereArgs: [recentEntry.first['id']],
+      );
+    }
   }
 
   Future<void> clearHistory() async {
@@ -167,6 +162,15 @@ class DatabaseHelper {
       'tool_history',
       where: 'tool_id = ?',
       whereArgs: [toolId],
+    );
+  }
+
+  Future<void> deleteHistoryItem(int historyId) async {
+    final db = await database;
+    await db.delete(
+      'tool_history',
+      where: 'id = ?',
+      whereArgs: [historyId],
     );
   }
 }
