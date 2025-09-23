@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'database_helper.dart';
 import 'screens/json_formatter_screen.dart';
 import 'screens/yaml_formatter_screen.dart';
 import 'screens/csv_to_json_screen.dart';
@@ -50,7 +50,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late TabController _tabController;
-  List<String> _recentlyUsedTools = [];
+  List<Map<String, dynamic>> _recentlyUsedTools = [];
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   final List<Map<String, dynamic>> _allTools = [
     {
@@ -175,48 +176,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Future<void> _loadRecentlyUsedTools() async {
-    final prefs = await SharedPreferences.getInstance();
-    final recentToolsJson = prefs.getString('recently_used_tools') ?? '[]';
+    final recentTools = await _dbHelper.getRecentTools(limit: 10);
     setState(() {
-      _recentlyUsedTools = List<String>.from(json.decode(recentToolsJson));
+      _recentlyUsedTools = recentTools;
     });
   }
 
-  Future<void> _saveRecentlyUsedTools() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('recently_used_tools', json.encode(_recentlyUsedTools));
-  }
-
-  Future<void> _addToRecentlyUsed(String toolId) async {
-    setState(() {
-      _recentlyUsedTools.remove(toolId); // Remove if already exists
-      _recentlyUsedTools.insert(0, toolId); // Add to beginning
-      if (_recentlyUsedTools.length > 10) {
-        _recentlyUsedTools = _recentlyUsedTools.take(10).toList(); // Keep only last 10
-      }
-    });
-    await _saveRecentlyUsedTools();
+  Future<void> _addToRecentlyUsed(String toolId, {Map<String, dynamic>? sessionData}) async {
+    final tool = _allTools.firstWhere((tool) => tool['id'] == toolId);
+    
+    await _dbHelper.addToolUsage(
+      toolId: toolId,
+      toolTitle: tool['title'],
+      toolDescription: tool['description'],
+      iconCodePoint: (tool['icon'] as IconData).codePoint,
+      sessionData: sessionData,
+    );
+    
+    await _loadRecentlyUsedTools();
   }
 
   List<Map<String, dynamic>> get _recentTools {
-    return _recentlyUsedTools
-        .map((toolId) => _allTools.firstWhere(
-              (tool) => tool['id'] == toolId,
-              orElse: () => {},
-            ))
-        .where((tool) => tool.isNotEmpty)
-        .take(5)
-        .toList();
+    return _recentlyUsedTools.take(5).toList();
   }
 
   List<Map<String, dynamic>> get _historyTools {
-    return _recentlyUsedTools
-        .map((toolId) => _allTools.firstWhere(
-              (tool) => tool['id'] == toolId,
-              orElse: () => {},
-            ))
-        .where((tool) => tool.isNotEmpty)
-        .toList();
+    return _recentlyUsedTools;
   }
 
   List<Map<String, dynamic>> get _filteredTools {
@@ -229,19 +214,52 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }).toList();
   }
 
-  void _navigateToTool(Map<String, dynamic> tool) {
-    _addToRecentlyUsed(tool['id']);
+  void _navigateToTool(Map<String, dynamic> tool, {Map<String, dynamic>? sessionData}) {
+    _addToRecentlyUsed(tool['id'], sessionData: sessionData);
+    
+    // If this is from history and has session data, pass it to the screen
+    Widget screen = tool['screen'];
+    if (sessionData != null) {
+      // You'll need to modify each screen to accept session data
+      // For now, just navigate normally
+    }
+    
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => tool['screen']),
+      MaterialPageRoute(builder: (context) => screen),
     );
   }
 
   Future<void> _clearHistory() async {
-    setState(() {
-      _recentlyUsedTools.clear();
-    });
-    await _saveRecentlyUsedTools();
+    await _dbHelper.clearHistory();
+    await _loadRecentlyUsedTools();
+  }
+
+  Future<void> _navigateToHistoryItem(Map<String, dynamic> historyItem) async {
+    // Find the corresponding tool from _allTools
+    final tool = _allTools.firstWhere(
+      (tool) => tool['id'] == historyItem['id'],
+      orElse: () => {},
+    );
+    
+    if (tool.isNotEmpty) {
+      _navigateToTool(tool, sessionData: historyItem['sessionData']);
+    }
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+    } else {
+      return 'Just now';
+    }
   }
 
   @override
@@ -384,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           if (index > 0) const Divider(),
                           _buildToolCard(
                             context,
-                            tool['icon'],
+                            IconData(tool['iconCodePoint']),
                             tool['title'],
                             tool['description'],
                             () => _navigateToTool(tool),
@@ -493,18 +511,39 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 : ListView.builder(
                     itemCount: _historyTools.length,
                     itemBuilder: (context, index) {
-                      final tool = _historyTools[index];
+                      final historyItem = _historyTools[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8.0),
                         child: ListTile(
                           leading: Icon(
-                            tool['icon'],
+                            historyItem['icon'],
                             color: Theme.of(context).colorScheme.primary,
                           ),
-                          title: Text(tool['title']),
-                          subtitle: Text(tool['description']),
+                          title: Text(historyItem['title']),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(historyItem['description']),
+                              if (historyItem['sessionData'] != null)
+                                Text(
+                                  'Has saved session data',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.secondary,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              Text(
+                                'Used ${historyItem['usageCount']} times • ${_formatTimestamp(historyItem['timestamp'])}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
                           trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () => _navigateToTool(tool),
+                          onTap: () => _navigateToHistoryItem(historyItem),
                         ),
                       );
                     },
