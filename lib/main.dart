@@ -17,6 +17,7 @@ import 'screens/cron_expression_screen.dart';
 import 'screens/color_picker_screen.dart';
 import 'screens/diff_checker_screen.dart';
 import 'screens/hash_screen.dart';
+import 'screens/regex_tester_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -166,6 +167,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Hash Generator',
       'description': 'Generate various string hashes (MD5, SHA-1, SHA-256, SHA-512, etc.)',
       'screen': const HashScreen(),
+    },
+    {
+      'id': 'regex_tester',
+      'icon': Icons.search,
+      'title': 'Regex Tester',
+      'description': 'Test regular expressions with pattern matching, groups, and replacement',
+      'screen': const RegexTesterScreen(),
     },
   ];
 
