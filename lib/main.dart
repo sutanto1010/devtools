@@ -24,6 +24,7 @@ import 'screens/hash_screen.dart';
 import 'screens/regex_tester_screen.dart';
 import 'screens/screenshot_screen.dart';
 import 'screens/basic_auth_screen.dart';
+import 'screens/chmod_calculator_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -215,6 +216,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Basic Auth Generator',
       'description': 'Generate Basic Authentication headers for HTTP requests',
       'screen': const BasicAuthScreen(),
+    },
+    {
+      'id': 'chmod_calculator',
+      'icon': Icons.security,
+      'title': 'Chmod Calculator',
+      'description': 'Calculate Unix file permissions in numeric and symbolic formats',
+      'screen': const ChmodCalculatorScreen(),
     },
   ];
 
