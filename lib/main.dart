@@ -16,6 +16,7 @@ import 'screens/jwt_decoder_screen.dart';
 import 'screens/cron_expression_screen.dart';
 import 'screens/color_picker_screen.dart';
 import 'screens/diff_checker_screen.dart';
+import 'screens/hash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -159,6 +160,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'description': 'Compare two texts and highlight differences line by line',
       'screen': const DiffCheckerScreen(),
     },
+    {
+      'id': 'hash_generator',
+      'icon': Icons.tag,
+      'title': 'Hash Generator',
+      'description': 'Generate various string hashes (MD5, SHA-1, SHA-256, SHA-512, etc.)',
+      'screen': const HashScreen(),
+    },
   ];
 
   @override
@@ -285,7 +293,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
               child: Center(
                 child: Text(
-                  'All Tools',
+                  'Dev Tools',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
