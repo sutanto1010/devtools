@@ -30,6 +30,8 @@ import 'screens/string_inspector_screen.dart';
 import 'screens/xml_formatter_screen.dart';
 import 'screens/uri_encoder_screen.dart';
 import 'screens/xml_to_json_screen.dart';
+import 'screens/yaml_to_json_screen.dart';
+import 'screens/string_replace_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -123,6 +125,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'XML to JSON Converter',
       'description': 'Convert between XML and JSON formats with attribute support',
       'screen': const XmlToJsonScreen(),
+    },
+    {
+      'id': 'yaml_to_json',
+      'icon': Icons.swap_horiz,
+      'title': 'YAML to JSON Converter',
+      'description': 'Convert between YAML and JSON formats',
+      'screen': const YamlToJsonScreen(),
     },
     {
       'id': 'json_explorer',
@@ -263,6 +272,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'URI Encoder/Decoder',
       'description': 'Encode and decode URI (Uniform Resource Identifier) components',
       'screen': const UriEncoderScreen(),
+    },
+    {
+      'id': 'string_replace',
+      'icon': Icons.find_replace,
+      'title': 'String Replace Tool',
+      'description': 'Advanced find and replace with regex support, case sensitivity, and bulk operations',
+      'screen': const StringReplaceScreen(),
     },
   ];
 
