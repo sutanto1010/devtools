@@ -26,6 +26,7 @@ import 'screens/screenshot_screen.dart';
 import 'screens/basic_auth_screen.dart';
 import 'screens/chmod_calculator_screen.dart';
 import 'screens/unix_time_screen.dart';
+import 'screens/string_inspector_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -231,6 +232,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Unix Time Converter',
       'description': 'Convert between Unix timestamps and human-readable dates with timezone support',
       'screen': const UnixTimeScreen(),
+    },
+    {
+      'id': 'string_inspector',
+      'icon': Icons.text_fields,
+      'title': 'String Inspector',
+      'description': 'Get detailed information on strings and texts',
+      'screen': const StringInspectorScreen(),
     },
   ];
 
