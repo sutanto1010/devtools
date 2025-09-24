@@ -43,6 +43,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   openpgp: ^3.10.6
+  xml: ^6.5.0
   
   # Screenshot and image editing dependencies
   screenshot: ^3.0.0

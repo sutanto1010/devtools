@@ -29,6 +29,7 @@ import 'screens/unix_time_screen.dart';
 import 'screens/string_inspector_screen.dart';
 import 'screens/xml_formatter_screen.dart';
 import 'screens/uri_encoder_screen.dart';
+import 'screens/xml_to_json_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -115,6 +116,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'CSV to JSON Converter',
       'description': 'Convert CSV data to JSON format',
       'screen': const CsvToJsonScreen(),
+    },
+    {
+      'id': 'xml_to_json',
+      'icon': Icons.swap_horiz,
+      'title': 'XML to JSON Converter',
+      'description': 'Convert between XML and JSON formats with attribute support',
+      'screen': const XmlToJsonScreen(),
     },
     {
       'id': 'json_explorer',
