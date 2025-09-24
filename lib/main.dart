@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:window_manager/window_manager.dart';  // Add this import
 import 'database_helper.dart';
 import 'screens/json_formatter_screen.dart';
 import 'screens/yaml_formatter_screen.dart';
@@ -23,7 +24,25 @@ import 'screens/regex_tester_screen.dart';
 import 'screens/screenshot_screen.dart';
 import 'system_tray_manager.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize window manager
+  await windowManager.ensureInitialized();
+  
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(1200, 800),
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.normal,
+  );
+  
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+  
   runApp(const MyApp());
 }
 
@@ -202,6 +221,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _systemTrayManager.onExitApp = () {
       dispose();
       exit(0);
+    };
+    _systemTrayManager.onShowApp = () async {
+      // Show and focus the main window
+      await windowManager.show();
+      await windowManager.focus();
+      await windowManager.setAlwaysOnTop(true);
+      await windowManager.setAlwaysOnTop(false); // Remove always on top after focusing
     };
   }
 

@@ -8,6 +8,7 @@ class SystemTrayManager with TrayListener {
   factory SystemTrayManager() => _instance;
   SystemTrayManager._internal();
   Function()? onExitApp;
+  Function()? onShowApp;
   final DatabaseHelper _dbHelper = DatabaseHelper();
   Function(String toolId)? onToolSelected;
 
@@ -140,6 +141,7 @@ class SystemTrayManager with TrayListener {
   void _showMainWindow() {
     // This will be handled in main.dart to show the window
     // You might need to use window_manager package for better window control
+    onShowApp?.call();
   }
 
   void _exitApp() {
