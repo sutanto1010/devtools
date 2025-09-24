@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'database_helper.dart';
@@ -197,6 +199,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _systemTrayManager.initSystemTray();
     // Set up system tray callback
     _systemTrayManager.onToolSelected = _handleSystemTrayToolSelection;
+    _systemTrayManager.onExitApp = () {
+      dispose();
+      exit(0);
+    };
   }
 
   void _handleSystemTrayToolSelection(String toolId) {

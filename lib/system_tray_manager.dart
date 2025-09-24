@@ -7,7 +7,7 @@ class SystemTrayManager with TrayListener {
   static final SystemTrayManager _instance = SystemTrayManager._internal();
   factory SystemTrayManager() => _instance;
   SystemTrayManager._internal();
-
+  Function()? onExitApp;
   final DatabaseHelper _dbHelper = DatabaseHelper();
   Function(String toolId)? onToolSelected;
 
@@ -44,17 +44,17 @@ class SystemTrayManager with TrayListener {
   }
 
   @override
-  void onTrayIconMouseDown() {
+  void onTrayIconMouseDown() async {
     print('System tray event: onTrayIconMouseDown');
-    _updateTrayMenu();
+    await _updateTrayMenu();
     trayManager.popUpContextMenu();
   }
 
   @override
-  void onTrayIconRightMouseDown() {
+  void onTrayIconRightMouseDown() async {
     print('System tray event: onTrayIconRightMouseDown');
     // Force menu update on right click
-    _updateTrayMenu();
+    await _updateTrayMenu();
     trayManager.popUpContextMenu();
   }
 
@@ -143,8 +143,11 @@ class SystemTrayManager with TrayListener {
   }
 
   void _exitApp() {
+    // Perform cleanup before exiting
+    dispose();
+    
     // Exit the application
-    // You might want to add proper cleanup here
+    onExitApp?.call();
   }
 
   Future<void> updateRecentTools() async {
