@@ -18,6 +18,7 @@ import 'screens/color_picker_screen.dart';
 import 'screens/diff_checker_screen.dart';
 import 'screens/hash_screen.dart';
 import 'screens/regex_tester_screen.dart';
+import 'screens/screenshot_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,31 +50,32 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
   late TabController _tabController;
-  List<Map<String, dynamic>> _recentlyUsedTools = [];
+  final TextEditingController _searchController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  
+  String _searchQuery = '';
+  List<Map<String, dynamic>> _recentlyUsedTools = [];
 
   final List<Map<String, dynamic>> _allTools = [
     {
       'id': 'json_formatter',
       'icon': Icons.code,
       'title': 'JSON Formatter',
-      'description': 'Format and validate JSON data',
+      'description': 'Format, validate, and beautify JSON data',
       'screen': const JsonFormatterScreen(),
     },
     {
       'id': 'yaml_formatter',
       'icon': Icons.description,
       'title': 'YAML Formatter',
-      'description': 'Format and validate YAML files',
+      'description': 'Format and validate YAML data',
       'screen': const YamlFormatterScreen(),
     },
     {
       'id': 'csv_to_json',
       'icon': Icons.transform,
-      'title': 'CSV to JSON',
+      'title': 'CSV to JSON Converter',
       'description': 'Convert CSV data to JSON format',
       'screen': const CsvToJsonScreen(),
     },
@@ -81,19 +83,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'id': 'json_explorer',
       'icon': Icons.explore,
       'title': 'JSON Explorer',
-      'description': 'Interactive JSON tree explorer with search and analysis',
+      'description': 'Explore JSON data in a tree view',
       'screen': const JsonExplorerScreen(),
     },
     {
       'id': 'base64_encoder',
-      'icon': Icons.security,
+      'icon': Icons.lock_outline,
       'title': 'Base64 Encoder/Decoder',
       'description': 'Encode and decode Base64 strings',
       'screen': const Base64Screen(),
     },
     {
-      'id': 'gpg_encrypt',
-      'icon': Icons.enhanced_encryption,
+      'id': 'gpg_encryption',
+      'icon': Icons.security,
       'title': 'GPG Encrypt/Decrypt',
       'description': 'Encrypt and decrypt text using GPG-style encryption',
       'screen': const GpgScreen(),
@@ -174,6 +176,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Regex Tester',
       'description': 'Test regular expressions with pattern matching, groups, and replacement',
       'screen': const RegexTesterScreen(),
+    },
+    {
+      'id': 'screenshot_tool',
+      'icon': Icons.screenshot,
+      'title': 'Screenshot Tool',
+      'description': 'Take screenshots with text annotation, drawing shapes, and cropping features',
+      'screen': const ScreenshotScreen(),
     },
   ];
 
