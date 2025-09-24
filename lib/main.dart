@@ -23,6 +23,7 @@ import 'screens/diff_checker_screen.dart';
 import 'screens/hash_screen.dart';
 import 'screens/regex_tester_screen.dart';
 import 'screens/screenshot_screen.dart';
+import 'screens/basic_auth_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -207,6 +208,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Screenshot Tool',
       'description': 'Take screenshots with text annotation, drawing shapes, and cropping features',
       'screen': const ScreenshotScreen(),
+    },
+    {
+      'id': 'basic_auth_generator',
+      'icon': Icons.key,
+      'title': 'Basic Auth Generator',
+      'description': 'Generate Basic Authentication headers for HTTP requests',
+      'screen': const BasicAuthScreen(),
     },
   ];
 
