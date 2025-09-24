@@ -27,6 +27,7 @@ import 'screens/basic_auth_screen.dart';
 import 'screens/chmod_calculator_screen.dart';
 import 'screens/unix_time_screen.dart';
 import 'screens/string_inspector_screen.dart';
+import 'screens/uri_encoder_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -239,6 +240,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'String Inspector',
       'description': 'Get detailed information on strings and texts',
       'screen': const StringInspectorScreen(),
+    },
+    {
+      'id': 'uri_encoder',
+      'icon': Icons.link,
+      'title': 'URI Encoder/Decoder',
+      'description': 'Encode and decode URI (Uniform Resource Identifier) components',
+      'screen': const UriEncoderScreen(),
     },
   ];
 
