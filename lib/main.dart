@@ -27,6 +27,7 @@ import 'screens/basic_auth_screen.dart';
 import 'screens/chmod_calculator_screen.dart';
 import 'screens/unix_time_screen.dart';
 import 'screens/string_inspector_screen.dart';
+import 'screens/xml_formatter_screen.dart';
 import 'screens/uri_encoder_screen.dart';
 import 'system_tray_manager.dart';
 
@@ -93,6 +94,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'JSON Formatter',
       'description': 'Format, validate, and beautify JSON data',
       'screen': const JsonFormatterScreen(),
+    },
+    {
+      'id': 'xml_formatter',
+      'icon': Icons.code,
+      'title': 'XML Formatter',
+      'description': 'Format, validate, minify, and beautify XML data with attribute sorting',
+      'screen': const XmlFormatterScreen(),
     },
     {
       'id': 'yaml_formatter',
