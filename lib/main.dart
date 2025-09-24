@@ -25,6 +25,7 @@ import 'screens/regex_tester_screen.dart';
 import 'screens/screenshot_screen.dart';
 import 'screens/basic_auth_screen.dart';
 import 'screens/chmod_calculator_screen.dart';
+import 'screens/unix_time_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -223,6 +224,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Chmod Calculator',
       'description': 'Calculate Unix file permissions in numeric and symbolic formats',
       'screen': const ChmodCalculatorScreen(),
+    },
+    {
+      'id': 'unix_time_converter',
+      'icon': Icons.access_time,
+      'title': 'Unix Time Converter',
+      'description': 'Convert between Unix timestamps and human-readable dates with timezone support',
+      'screen': const UnixTimeScreen(),
     },
   ];
 
