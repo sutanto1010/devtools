@@ -19,6 +19,7 @@ import 'screens/diff_checker_screen.dart';
 import 'screens/hash_screen.dart';
 import 'screens/regex_tester_screen.dart';
 import 'screens/screenshot_screen.dart';
+import 'system_tray_manager.dart';
 
 void main() {
   runApp(const MyApp());
@@ -53,6 +54,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  final SystemTrayManager _systemTrayManager = SystemTrayManager();
   
   String _searchQuery = '';
   List<Map<String, dynamic>> _recentlyUsedTools = [];
@@ -191,6 +193,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadRecentlyUsedTools();
+    // init system tray
+    _systemTrayManager.initSystemTray();
+    // Set up system tray callback
+    _systemTrayManager.onToolSelected = _handleSystemTrayToolSelection;
+  }
+
+  void _handleSystemTrayToolSelection(String toolId) {
+    final tool = _allTools.firstWhere(
+      (tool) => tool['id'] == toolId,
+      orElse: () => {},
+    );
+    
+    if (tool.isNotEmpty) {
+      _navigateToTool(tool);
+    }
   }
 
   @override
@@ -219,6 +236,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
     
     await _loadRecentlyUsedTools();
+    
+    // Update system tray menu with new recent tools
+    await _systemTrayManager.updateRecentTools();
   }
 
   List<Map<String, dynamic>> get _recentTools {
