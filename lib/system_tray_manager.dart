@@ -1,14 +1,13 @@
-import 'package:system_tray/system_tray.dart';
+import 'package:tray_manager/tray_manager.dart';
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
 import 'dart:io' show Platform;
 
-class SystemTrayManager {
+class SystemTrayManager with TrayListener {
   static final SystemTrayManager _instance = SystemTrayManager._internal();
   factory SystemTrayManager() => _instance;
   SystemTrayManager._internal();
 
-  final SystemTray _systemTray = SystemTray();
   final DatabaseHelper _dbHelper = DatabaseHelper();
   Function(String toolId)? onToolSelected;
 
@@ -24,33 +23,53 @@ class SystemTrayManager {
       
       print('Initializing system tray with icon: $iconPath');
       
+      // Add tray listener
+      trayManager.addListener(this);
+      
       // Initialize system tray
-      await _systemTray.initSystemTray(
-        title: "Dev Tools",
-        iconPath: iconPath,
-      );
+      await trayManager.setIcon(iconPath);
+      await trayManager.setToolTip('Dev Tools');
       
       print('System tray initialized successfully');
 
       // Set up the context menu
       await _updateTrayMenu();
       print('System tray menu updated');
-
-      // Register tray event
-      _systemTray.registerSystemTrayEventHandler((eventName) {
-        print('System tray event: $eventName');
-        if (eventName == kSystemTrayEventClick) {
-          _updateTrayMenu();
-        } else if (eventName == kSystemTrayEventRightClick) {
-          // Force menu update on right click
-          _updateTrayMenu();
-        }
-      });
       
       print('System tray event handler registered');
     } catch (e) {
       print('Error initializing system tray: $e');
       // You might want to show a dialog or notification to the user
+    }
+  }
+
+  @override
+  void onTrayIconMouseDown() {
+    print('System tray event: onTrayIconMouseDown');
+    _updateTrayMenu();
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {
+    print('System tray event: onTrayIconRightMouseDown');
+    // Force menu update on right click
+    _updateTrayMenu();
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    print('Menu item clicked: ${menuItem.key}');
+    
+    if (menuItem.key == 'show_app') {
+      print('Show App clicked');
+      _showMainWindow();
+    } else if (menuItem.key == 'exit') {
+      print('Exit clicked');
+      _exitApp();
+    } else if (menuItem.key?.startsWith('tool_') == true) {
+      final toolId = menuItem.key!.substring(5); // Remove 'tool_' prefix
+      print('Tool selected: $toolId');
+      _handleToolSelection(toolId);
     }
   }
 
@@ -60,63 +79,53 @@ class SystemTrayManager {
       final recentTools = await _dbHelper.getRecentTools(limit: 5);
       print('Recent tools count: ${recentTools.length}');
       
-      final Menu menu = Menu();
+      List<MenuItem> menuItems = [];
       
       if (recentTools.isNotEmpty) {
         // Add recent tools section
-        await menu.buildFrom([
-          MenuItemLabel(label: 'Recent Tools', enabled: false),
-          MenuSeparator(),
-          ...recentTools.map((tool) => MenuItemLabel(
+        menuItems.add(MenuItem(
+          key: 'recent_tools_header',
+          label: 'Recent Tools',
+          disabled: true,
+        ));
+        menuItems.add(MenuItem.separator());
+        
+        // Add recent tools
+        for (var tool in recentTools) {
+          menuItems.add(MenuItem(
+            key: 'tool_${tool['id']}',
             label: tool['title'],
-            onClicked: (menuItem) {
-              print('Tool selected: ${tool['id']}');
-              _handleToolSelection(tool['id']);
-            },
-          )),
-          MenuSeparator(),
-          MenuItemLabel(
-            label: 'Show App',
-            onClicked: (menuItem) {
-              print('Show App clicked');
-              _showMainWindow();
-            },
-          ),
-          MenuItemLabel(
-            label: 'Exit',
-            onClicked: (menuItem) {
-              print('Exit clicked');
-              _exitApp();
-            },
-          ),
-        ]);
+          ));
+        }
+        
+        menuItems.add(MenuItem.separator());
       } else {
         // No recent tools available
-        await menu.buildFrom([
-          MenuItemLabel(label: 'No recent tools', enabled: false),
-          MenuSeparator(),
-          MenuItemLabel(
-            label: 'Show App',
-            onClicked: (menuItem) {
-              print('Show App clicked');
-              _showMainWindow();
-            },
-          ),
-          MenuItemLabel(
-            label: 'Exit',
-            onClicked: (menuItem) {
-              print('Exit clicked');
-              _exitApp();
-            },
-          ),
-        ]);
+        menuItems.add(MenuItem(
+          key: 'no_recent_tools',
+          label: 'No recent tools',
+          disabled: true,
+        ));
+        menuItems.add(MenuItem.separator());
       }
+      
+      // Add common menu items
+      menuItems.add(MenuItem(
+        key: 'show_app',
+        label: 'Show App',
+      ));
+      menuItems.add(MenuItem(
+        key: 'exit',
+        label: 'Exit',
+      ));
 
-      await _systemTray.setContextMenu(menu);
+      Menu menu = Menu(items: menuItems);
+      await trayManager.setContextMenu(menu);
       print('Context menu set successfully');
     } catch (e) {
       print('Error updating tray menu: $e');
     }
+    trayManager.popUpContextMenu();
   }
 
   void _handleToolSelection(String toolId) {
@@ -125,6 +134,7 @@ class SystemTrayManager {
     }
     _showMainWindow();
   }
+  
 
   void _showMainWindow() {
     // This will be handled in main.dart to show the window
@@ -141,6 +151,7 @@ class SystemTrayManager {
   }
 
   void dispose() {
-    _systemTray.destroy();
+    trayManager.removeListener(this);
+    trayManager.destroy();
   }
 }
