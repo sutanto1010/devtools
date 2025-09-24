@@ -10,6 +10,7 @@ import 'screens/yaml_formatter_screen.dart';
 import 'screens/csv_to_json_screen.dart';
 import 'screens/json_explorer_screen.dart';
 import 'screens/base64_screen.dart';
+import 'screens/hex_to_ascii_screen.dart';
 import 'screens/gpg_screen.dart';
 import 'screens/symmetric_encryption_screen.dart';
 import 'screens/dns_scanner_screen.dart';
@@ -146,6 +147,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Base64 Encoder/Decoder',
       'description': 'Encode and decode Base64 strings',
       'screen': const Base64Screen(),
+    },
+     {
+      'id': 'hex_to_ascii',
+      'icon': Icons.transform,
+      'title': 'Hex ↔ ASCII Converter',
+      'description': 'Convert between hexadecimal and ASCII text with advanced formatting options',
+      'screen': const HexToAsciiScreen(),
     },
     {
       'id': 'gpg_encryption',
