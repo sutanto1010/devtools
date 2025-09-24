@@ -47,6 +47,7 @@ class SystemTrayManager with TrayListener {
   void onTrayIconMouseDown() {
     print('System tray event: onTrayIconMouseDown');
     _updateTrayMenu();
+    trayManager.popUpContextMenu();
   }
 
   @override
@@ -54,6 +55,7 @@ class SystemTrayManager with TrayListener {
     print('System tray event: onTrayIconRightMouseDown');
     // Force menu update on right click
     _updateTrayMenu();
+    trayManager.popUpContextMenu();
   }
 
   @override
@@ -125,7 +127,6 @@ class SystemTrayManager with TrayListener {
     } catch (e) {
       print('Error updating tray menu: $e');
     }
-    trayManager.popUpContextMenu();
   }
 
   void _handleToolSelection(String toolId) {
