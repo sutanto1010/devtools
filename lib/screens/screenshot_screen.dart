@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'dart:convert';
 
 enum DrawingTool { none, line, rectangle, circle, arrow, text, crop, select }
 
@@ -270,6 +271,42 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
       }
     } catch (e) {
       _showSnackBar('Error saving image: $e');
+    }
+  }
+
+  Future<void> _copyToClipboard() async {
+    if (_imageData == null) return;
+
+    try {
+      // Create a canvas to draw the image with annotations
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      
+      // Decode and draw the original image
+      final codec = await ui.instantiateImageCodec(_imageData!);
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      
+      canvas.drawImage(image, Offset.zero, Paint());
+      
+      // Draw all annotations
+      for (final point in _drawingPoints) {
+        _drawOnCanvas(canvas, point);
+      }
+      
+      final picture = recorder.endRecording();
+      final img = await picture.toImage(image.width, image.height);
+      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+      
+      if (byteData != null) {
+        // Copy image data to clipboard
+        await Clipboard.setData(ClipboardData(
+          text: 'data:image/png;base64,${base64Encode(byteData.buffer.asUint8List())}'
+        ));
+        _showSnackBar('Image copied to clipboard!');
+      }
+    } catch (e) {
+      _showSnackBar('Error copying to clipboard: $e');
     }
   }
 
@@ -551,6 +588,11 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
             onPressed: _clearDrawings,
             icon: const Icon(Icons.clear_all),
             tooltip: 'Clear all drawings',
+          ),
+          IconButton(
+            onPressed: _imageData != null ? _copyToClipboard : null,
+            icon: const Icon(Icons.copy),
+            tooltip: 'Copy to clipboard',
           ),
           IconButton(
             onPressed: _saveImage,
