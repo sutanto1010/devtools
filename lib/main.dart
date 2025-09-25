@@ -50,6 +50,7 @@ void main() async {
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
+    title: 'Dev Tools',
   );
   
   windowManager.waitUntilReadyToShow(windowOptions, () async {
