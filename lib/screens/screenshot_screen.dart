@@ -63,15 +63,32 @@ class DrawingPoint {
         }
         return Rect.fromCenter(center: point, width: 20, height: 20);
       case DrawingTool.text:
-        // Approximate text bounds
-        final fontSize = paint.strokeWidth * 5;
-        final textLength = text?.length ?? 1;
-        return Rect.fromLTWH(
-          point.dx,
-          point.dy - fontSize,
-          textLength * fontSize * 0.6,
-          fontSize * 1.2,
-        );
+        if (text != null) {
+          // Calculate accurate text bounds using TextPainter
+          final fontSize = paint.strokeWidth * 5;
+          final textPainter = TextPainter(
+            text: TextSpan(
+              text: text!,
+              style: TextStyle(
+                color: paint.color,
+                fontSize: fontSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          );
+          textPainter.layout();
+          
+          // Add some padding around the text for easier selection
+          const padding = 8.0;
+          return Rect.fromLTWH(
+            point.dx - padding,
+            point.dy - padding,
+            textPainter.width + (padding * 2),
+            textPainter.height + (padding * 2),
+          );
+        }
+        return Rect.fromCenter(center: point, width: 50, height: 20);
       default:
         return Rect.fromCenter(center: point, width: 20, height: 20);
     }
@@ -836,7 +853,7 @@ class ImagePainter extends CustomPainter {
 
   void _drawImage(Canvas canvas, Size size) {
     if (decodedImage != null) {
-      // Calculate scaling to fit the image within the canvas while maintaining aspect ratio
+      // Calculate aspect ratios
       final imageAspectRatio = decodedImage!.width / decodedImage!.height;
       final canvasAspectRatio = size.width / size.height;
       
