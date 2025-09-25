@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:window_manager/window_manager.dart';  // Add this import
 import 'package:package_info_plus/package_info_plus.dart';
 import 'database_helper.dart';
+import 'pages/home_page.dart';
 import 'screens/json_formatter_screen.dart';
 import 'screens/yaml_formatter_screen.dart';
 import 'screens/csv_to_json_screen.dart';
@@ -72,7 +73,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(),
+      home: const HomePage(),
     );
   }
 }
