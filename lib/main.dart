@@ -34,6 +34,7 @@ import 'screens/xml_to_json_screen.dart';
 import 'screens/yaml_to_json_screen.dart';
 import 'screens/string_replace_screen.dart';
 import 'screens/image_base64_screen.dart';
+import 'screens/html_viewer_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -295,6 +296,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'Image ↔ Base64 Converter',
       'description': 'Convert images to Base64 and vice versa with preview and save functionality',
       'screen': const ImageBase64Screen(),
+    },
+    {
+      'id': 'html_viewer',
+      'icon': Icons.web,
+      'title': 'HTML Viewer',
+      'description': 'View and render HTML content with JavaScript and CSS support',
+      'screen': const HtmlViewerScreen(),
     },
   ];
 
