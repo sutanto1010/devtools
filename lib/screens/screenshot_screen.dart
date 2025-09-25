@@ -7,14 +7,15 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
-enum DrawingTool { none, line, rectangle, circle, arrow, text, crop }
+enum DrawingTool { none, line, rectangle, circle, arrow, text, crop, select }
 
 class DrawingPoint {
-  final Offset point;
+  Offset point;
   final Paint paint;
   final DrawingTool tool;
   final String? text;
-  final Offset? endPoint;
+  Offset? endPoint;
+  bool isSelected;
 
   DrawingPoint({
     required this.point,
@@ -22,7 +23,72 @@ class DrawingPoint {
     required this.tool,
     this.text,
     this.endPoint,
+    this.isSelected = false,
   });
+
+  // Create a copy of the drawing point with updated positions
+  DrawingPoint copyWith({
+    Offset? point,
+    Offset? endPoint,
+    bool? isSelected,
+  }) {
+    return DrawingPoint(
+      point: point ?? this.point,
+      paint: paint,
+      tool: tool,
+      text: text,
+      endPoint: endPoint ?? this.endPoint,
+      isSelected: isSelected ?? this.isSelected,
+    );
+  }
+
+  // Get the bounding box of the drawing element
+  Rect getBounds() {
+    switch (tool) {
+      case DrawingTool.line:
+      case DrawingTool.arrow:
+        if (endPoint != null) {
+          return Rect.fromPoints(point, endPoint!).inflate(10);
+        }
+        return Rect.fromCenter(center: point, width: 20, height: 20);
+      case DrawingTool.rectangle:
+        if (endPoint != null) {
+          return Rect.fromPoints(point, endPoint!).inflate(5);
+        }
+        return Rect.fromCenter(center: point, width: 20, height: 20);
+      case DrawingTool.circle:
+        if (endPoint != null) {
+          final radius = (endPoint! - point).distance;
+          return Rect.fromCenter(center: point, width: (radius + 10) * 2, height: (radius + 10) * 2);
+        }
+        return Rect.fromCenter(center: point, width: 20, height: 20);
+      case DrawingTool.text:
+        // Approximate text bounds
+        final fontSize = paint.strokeWidth * 5;
+        final textLength = text?.length ?? 1;
+        return Rect.fromLTWH(
+          point.dx,
+          point.dy - fontSize,
+          textLength * fontSize * 0.6,
+          fontSize * 1.2,
+        );
+      default:
+        return Rect.fromCenter(center: point, width: 20, height: 20);
+    }
+  }
+
+  // Check if a point is within this drawing element
+  bool containsPoint(Offset testPoint) {
+    return getBounds().contains(testPoint);
+  }
+
+  // Move the drawing element by an offset
+  void moveBy(Offset delta) {
+    point = point + delta;
+    if (endPoint != null) {
+      endPoint = endPoint! + delta;
+    }
+  }
 }
 
 class ScreenshotScreen extends StatefulWidget {
@@ -47,6 +113,11 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Rect? _cropRect;
   bool _isCropping = false;
   bool _isCapturing = false;
+  
+  // New variables for dragging functionality
+  DrawingPoint? _selectedDrawingPoint;
+  bool _isDragging = false;
+  Offset? _dragStartPosition;
 
   @override
   void dispose() {
@@ -248,27 +319,61 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   }
 
   void _onPanStart(DragStartDetails details) {
+    final position = details.localPosition;
+    
+    // If select tool is active, check for existing drawings to select/drag
+    if (_selectedTool == DrawingTool.select) {
+      _handleSelectStart(position);
+      return;
+    }
+    
+    // Clear any existing selections when starting to draw
+    _clearSelections();
+    
     if (_selectedTool == DrawingTool.none) return;
     
     setState(() {
       _isDrawing = true;
-      _startPoint = details.localPosition;
+      _startPoint = position;
       
       if (_selectedTool == DrawingTool.text) {
-        _showTextDialog(details.localPosition);
+        _showTextDialog(position);
       }
     });
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    if (!_isDrawing || _selectedTool == DrawingTool.text) return;
+    final position = details.localPosition;
+    
+    // Handle dragging selected elements
+    if (_isDragging && _selectedDrawingPoint != null && _dragStartPosition != null) {
+      final delta = position - _dragStartPosition!;
+      setState(() {
+        _selectedDrawingPoint!.moveBy(delta);
+        _dragStartPosition = position;
+      });
+      return;
+    }
+    
+    // Handle drawing new elements
+    if (!_isDrawing || _selectedTool == DrawingTool.text || _selectedTool == DrawingTool.select) return;
     
     setState(() {
-      _endPoint = details.localPosition;
+      _endPoint = position;
     });
   }
 
   void _onPanEnd(DragEndDetails details) {
+    // Handle end of dragging
+    if (_isDragging) {
+      setState(() {
+        _isDragging = false;
+        _dragStartPosition = null;
+      });
+      return;
+    }
+    
+    // Handle end of drawing
     if (!_isDrawing) return;
     
     if (_startPoint != null && _endPoint != null && _selectedTool != DrawingTool.text) {
@@ -292,6 +397,47 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
       _startPoint = null;
       _endPoint = null;
     });
+  }
+
+  void _handleSelectStart(Offset position) {
+    // Find the topmost drawing element at this position
+    DrawingPoint? hitElement;
+    for (int i = _drawingPoints.length - 1; i >= 0; i--) {
+      if (_drawingPoints[i].containsPoint(position)) {
+        hitElement = _drawingPoints[i];
+        break;
+      }
+    }
+    
+    // Clear all selections first
+    _clearSelections();
+    
+    if (hitElement != null) {
+      setState(() {
+        hitElement!.isSelected = true;
+        _selectedDrawingPoint = hitElement;
+        _isDragging = true;
+        _dragStartPosition = position;
+      });
+    }
+  }
+
+  void _clearSelections() {
+    setState(() {
+      for (var point in _drawingPoints) {
+        point.isSelected = false;
+      }
+      _selectedDrawingPoint = null;
+    });
+  }
+
+  void _deleteSelectedElement() {
+    if (_selectedDrawingPoint != null) {
+      setState(() {
+        _drawingPoints.remove(_selectedDrawingPoint);
+        _selectedDrawingPoint = null;
+      });
+    }
   }
 
   void _showTextDialog(Offset position) {
@@ -378,6 +524,12 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
         title: const Text('Screenshot Tool'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          if (_selectedDrawingPoint != null)
+            IconButton(
+              onPressed: _deleteSelectedElement,
+              icon: const Icon(Icons.delete),
+              tooltip: 'Delete selected element',
+            ),
           IconButton(
             onPressed: _clearDrawings,
             icon: const Icon(Icons.clear_all),
@@ -455,6 +607,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                 Wrap(
                   spacing: 8,
                   children: [
+                    _buildToolButton(DrawingTool.select, Icons.near_me, 'Select'),
                     _buildToolButton(DrawingTool.line, Icons.remove, 'Line'),
                     _buildToolButton(DrawingTool.rectangle, Icons.crop_square, 'Rectangle'),
                     _buildToolButton(DrawingTool.circle, Icons.circle_outlined, 'Circle'),
@@ -533,6 +686,14 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                                 const Text('• Region: Drag to select an area'),
                                 const Text('• Full Screen: Capture entire screen'),
                                 const Text('• Window: Select a specific window'),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Drawing Tools:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text('• Select: Click and drag to move elements'),
+                                const Text('• Draw shapes and add text annotations'),
                               ],
                             ),
                           ),
@@ -617,10 +778,15 @@ class ImagePainter extends CustomPainter {
     // Draw all completed drawings
     for (final point in drawingPoints) {
       _drawPoint(canvas, point);
+      
+      // Draw selection indicator
+      if (point.isSelected) {
+        _drawSelectionIndicator(canvas, point);
+      }
     }
     
     // Draw current drawing in progress
-    if (isDrawing && startPoint != null && endPoint != null && currentTool != DrawingTool.text) {
+    if (isDrawing && startPoint != null && endPoint != null && currentTool != DrawingTool.text && currentTool != DrawingTool.select) {
       final paint = Paint()
         ..color = currentColor
         ..strokeWidth = currentStrokeWidth
@@ -634,6 +800,37 @@ class ImagePainter extends CustomPainter {
       );
       
       _drawPoint(canvas, tempPoint);
+    }
+  }
+
+  void _drawSelectionIndicator(Canvas canvas, DrawingPoint point) {
+    final bounds = point.getBounds();
+    final selectionPaint = Paint()
+      ..color = Colors.blue
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+    
+    // Draw selection rectangle
+    canvas.drawRect(bounds, selectionPaint);
+    
+    // Draw corner handles
+    const handleSize = 8.0;
+    final handlePaint = Paint()
+      ..color = Colors.blue
+      ..style = PaintingStyle.fill;
+    
+    final corners = [
+      bounds.topLeft,
+      bounds.topRight,
+      bounds.bottomLeft,
+      bounds.bottomRight,
+    ];
+    
+    for (final corner in corners) {
+      canvas.drawRect(
+        Rect.fromCenter(center: corner, width: handleSize, height: handleSize),
+        handlePaint,
+      );
     }
   }
 
