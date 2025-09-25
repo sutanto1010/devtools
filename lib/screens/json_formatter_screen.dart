@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:syntax_highlight/syntax_highlight.dart';
+import 'package:flutter/services.dart';
 
 class JsonFormatterScreen extends StatefulWidget {
   const JsonFormatterScreen({super.key});
@@ -105,6 +106,33 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     });
   }
 
+  void _copyToClipboard() async {
+    final output = _outputController.text;
+    if (output.isEmpty) {
+      setState(() {
+        _errorMessage = 'No formatted JSON to copy';
+      });
+      return;
+    }
+
+    try {
+      await Clipboard.setData(ClipboardData(text: output));
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('JSON copied to clipboard!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to copy to clipboard';
+      });
+    }
+  }
+
   Widget _buildHighlightedTextField({
     required TextEditingController controller,
     required String hintText,
@@ -124,7 +152,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
         ),
         textAlignVertical: TextAlignVertical.top,
         style: const TextStyle(
-          fontFamily: 'monospace',
+          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
           fontSize: 14,
         ),
       );
@@ -159,7 +187,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       return Text(
         hintText,
         style: const TextStyle(
-          fontFamily: 'monospace',
+          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
           fontSize: 14,
           color: Colors.grey,
         ),
@@ -170,10 +198,10 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       // Validate JSON before highlighting
       jsonDecode(text);
       final highlighted = _jsonHighlighter!.highlight(text);
-      return Text.rich(
+      return SelectableText.rich(
         highlighted,
         style: const TextStyle(
-          fontFamily: 'monospace',
+          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
           fontSize: 14,
         ),
       );
@@ -182,9 +210,8 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       return Text(
         text,
         style: const TextStyle(
-          fontFamily: 'monospace',
+          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
           fontSize: 14,
-          color: Colors.red,
         ),
       );
     }
@@ -244,6 +271,12 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
                   label: const Text('Clear'),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: _copyToClipboard,
+                  icon: const Icon(Icons.copy),
+                  label: const Text('Copy'),
                 ),
                 if (_errorMessage.isNotEmpty) ...[
                   const SizedBox(height: 16),
