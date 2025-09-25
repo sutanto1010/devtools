@@ -524,26 +524,50 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _addToRecentlyUsed(tool['id'], sessionData: sessionData);
   }
 
-  void _closeTab(int index) {
+  Future<void> _closeTab(int index) async {
     if (_openTabs.length <= 1) return; // Don't close the last tab
     
-    setState(() {
-      _openTabs.removeAt(index);
-    });
+    // Show confirmation dialog
+    final bool? shouldClose = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Close Tab'),
+          content: Text('Are you sure you want to close "${_openTabs[index].title}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
     
-    // Update tab controller - add 1 for plus button
-    final currentIndex = _tabController.index;
-    _tabController.dispose();
-    _tabController = TabController(length: _openTabs.length + 1, vsync: this);
-    _tabController.addListener(_handleTabChange);
-    
-    // Adjust current tab index if necessary
-    if (currentIndex >= _openTabs.length) {
-      _tabController.index = _openTabs.length - 1;
-    } else if (currentIndex > index) {
-      _tabController.index = currentIndex - 1;
-    } else {
-      _tabController.index = currentIndex;
+    // Only close if user confirmed
+    if (shouldClose == true) {
+      setState(() {
+        _openTabs.removeAt(index);
+      });
+      
+      // Update tab controller - add 1 for plus button
+      final currentIndex = _tabController.index;
+      _tabController.dispose();
+      _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+      _tabController.addListener(_handleTabChange);
+      
+      // Adjust current tab index if necessary
+      if (currentIndex >= _openTabs.length) {
+        _tabController.index = _openTabs.length - 1;
+      } else if (currentIndex > index) {
+        _tabController.index = currentIndex - 1;
+      } else {
+        _tabController.index = currentIndex;
+      }
     }
   }
 
@@ -613,7 +637,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         if (_openTabs.length > 1) ...[
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _closeTab(index),
+                            onTap: () async => await _closeTab(index),
                             child: const Icon(Icons.close, size: 16),
                           ),
                         ],
