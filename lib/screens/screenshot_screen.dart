@@ -765,7 +765,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
-                      color: Colors.white,
                       child: GestureDetector(
                         onPanStart: _onPanStart,
                         onPanUpdate: _onPanUpdate,
@@ -902,23 +901,23 @@ class ImagePainter extends CustomPainter {
       final imageAspectRatio = decodedImage!.width / decodedImage!.height;
       final canvasAspectRatio = size.width / size.height;
       
-      double srcWidth, srcHeight;
-      double srcX = 0, srcY = 0;
+      double drawWidth, drawHeight;
+      double offsetX = 0, offsetY = 0;
       
       if (imageAspectRatio > canvasAspectRatio) {
-        // Image is wider - crop horizontally
-        srcHeight = decodedImage!.height.toDouble();
-        srcWidth = srcHeight * canvasAspectRatio;
-        srcX = (decodedImage!.width - srcWidth) / 2;
+        // Image is wider than canvas
+        drawWidth = size.width;
+        drawHeight = size.width / imageAspectRatio;
+        offsetY = (size.height - drawHeight) / 2;
       } else {
-        // Image is taller - crop vertically
-        srcWidth = decodedImage!.width.toDouble();
-        srcHeight = srcWidth / canvasAspectRatio;
-        srcY = (decodedImage!.height - srcHeight) / 2;
+        // Image is taller than canvas
+        drawHeight = size.height;
+        drawWidth = size.height * imageAspectRatio;
+        offsetX = (size.width - drawWidth) / 2;
       }
       
-      final destRect = Rect.fromLTWH(0, 0, size.width, size.height);
-      final srcRect = Rect.fromLTWH(srcX, srcY, srcWidth, srcHeight);
+      final destRect = Rect.fromLTWH(offsetX, offsetY, drawWidth, drawHeight);
+      final srcRect = Rect.fromLTWH(0, 0, decodedImage!.width.toDouble(), decodedImage!.height.toDouble());
       
       canvas.drawImageRect(decodedImage!, srcRect, destRect, Paint());
     } else {
