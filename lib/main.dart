@@ -33,6 +33,7 @@ import 'screens/uri_encoder_screen.dart';
 import 'screens/xml_to_json_screen.dart';
 import 'screens/yaml_to_json_screen.dart';
 import 'screens/string_replace_screen.dart';
+import 'screens/image_base64_screen.dart';
 import 'system_tray_manager.dart';
 
 void main() async {
@@ -287,6 +288,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'String Replace Tool',
       'description': 'Advanced find and replace with regex support, case sensitivity, and bulk operations',
       'screen': const StringReplaceScreen(),
+    },
+    {
+      'id': 'image_base64',
+      'icon': Icons.image,
+      'title': 'Image ↔ Base64 Converter',
+      'description': 'Convert images to Base64 and vice versa with preview and save functionality',
+      'screen': const ImageBase64Screen(),
     },
   ];
 
