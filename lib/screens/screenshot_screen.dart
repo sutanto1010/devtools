@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:super_clipboard/super_clipboard.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-import 'dart:convert';
 
 enum DrawingTool { none, line, rectangle, circle, arrow, text, crop, select }
 
@@ -299,11 +299,16 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
       final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
       
       if (byteData != null) {
-        // Copy image data to clipboard
-        await Clipboard.setData(ClipboardData(
-          text: 'data:image/png;base64,${base64Encode(byteData.buffer.asUint8List())}'
-        ));
-        _showSnackBar('Image copied to clipboard!');
+        // Use super_clipboard to copy binary image data
+        final clipboard = SystemClipboard.instance;
+        if (clipboard != null) {
+          final item = DataWriterItem();
+          item.add(Formats.png(byteData.buffer.asUint8List()));
+          await clipboard.write([item]);
+          _showSnackBar('Image copied to clipboard!');
+        } else {
+          _showSnackBar('Clipboard not available');
+        }
       }
     } catch (e) {
       _showSnackBar('Error copying to clipboard: $e');
