@@ -14,6 +14,7 @@ import 'screens/hex_to_ascii_screen.dart';
 import 'screens/gpg_screen.dart';
 import 'screens/symmetric_encryption_screen.dart';
 import 'screens/dns_scanner_screen.dart';
+import 'screens/host_scanner_screen.dart';
 import 'screens/unit_converter_screen.dart';
 import 'screens/uuid_screen.dart';
 import 'screens/url_parser_screen.dart';
@@ -184,6 +185,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'title': 'DNS Scanner',
       'description': 'Scan and lookup DNS records for domains',
       'screen': const DnsScannerScreen(),
+    },
+    {
+      'id': 'host_scanner',
+      'icon': Icons.router,
+      'title': 'Host Scanner',
+      'description': 'Scan network for active hosts and open ports using network discovery',
+      'screen': const HostScannerScreen(),
     },
     {
       'id': 'unit_converter',
