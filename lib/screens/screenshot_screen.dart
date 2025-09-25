@@ -575,7 +575,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Screenshot Tool'),
+        title: const Text('Screenshot'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           if (_selectedDrawingPoint != null)
@@ -672,7 +672,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                     _buildToolButton(DrawingTool.circle, Icons.circle_outlined, 'Circle'),
                     _buildToolButton(DrawingTool.arrow, Icons.arrow_forward, 'Arrow'),
                     _buildToolButton(DrawingTool.text, Icons.text_fields, 'Text'),
-                    _buildToolButton(DrawingTool.crop, Icons.crop, 'Crop'),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -795,6 +794,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Widget _buildToolButton(DrawingTool tool, IconData icon, String label) {
     final isSelected = _selectedTool == tool;
     return FilterChip(
+      showCheckmark: false,
       selected: isSelected,
       onSelected: (selected) {
         setState(() {
