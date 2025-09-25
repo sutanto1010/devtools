@@ -331,7 +331,73 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   ];
   Widget createScreen(String toolId) {
     final tool = _allTools.firstWhere((tool) => tool['id'] == toolId);
-    return tool['screen'];
+    // Remove const to create new instances that can maintain state
+    switch (toolId) {
+      case 'json_formatter':
+        return JsonFormatterScreen();
+      case 'xml_formatter':
+        return XmlFormatterScreen();
+      case 'yaml_formatter':
+        return YamlFormatterScreen();
+      case 'csv_to_json':
+        return CsvToJsonScreen();
+      case 'xml_to_json':
+        return XmlToJsonScreen();
+      case 'yaml_to_json':
+        return YamlToJsonScreen();
+      case 'json_explorer':
+        return JsonExplorerScreen();
+      case 'base64_encoder':
+        return Base64Screen();
+      case 'hex_to_ascii':
+        return HexToAsciiScreen();
+      case 'gpg_encryption':
+        return GpgScreen();
+      case 'symmetric_encryption':
+        return SymmetricEncryptionScreen();
+      case 'jwt_decoder':
+        return JwtDecoderScreen();
+      case 'dns_scanner':
+        return DnsScannerScreen();
+      case 'host_scanner':
+        return HostScannerScreen();
+      case 'unit_converter':
+        return UnitConverterScreen();
+      case 'uuid_generator':
+        return UuidScreen();
+      case 'url_parser':
+        return UrlParserScreen();
+      case 'cron_expression':
+        return CronExpressionScreen();
+      case 'color_picker':
+        return ColorPickerScreen();
+      case 'diff_checker':
+        return DiffCheckerScreen();
+      case 'hash_generator':
+        return HashScreen();
+      case 'regex_tester':
+        return RegexTesterScreen();
+      case 'screenshot_tool':
+        return ScreenshotScreen();
+      case 'basic_auth_generator':
+        return BasicAuthScreen();
+      case 'chmod_calculator':
+        return ChmodCalculatorScreen();
+      case 'unix_time_converter':
+        return UnixTimeScreen();
+      case 'string_inspector':
+        return StringInspectorScreen();
+      case 'uri_encoder':
+        return UriEncoderScreen();
+      case 'string_replace':
+        return StringReplaceScreen();
+      case 'image_base64':
+        return ImageBase64Screen();
+      case 'html_viewer':
+        return HtmlViewerScreen();
+      default:
+        return tool['screen'];
+    }
   }
   @override
   void initState() {
@@ -661,7 +727,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       body: TabBarView(
         controller: _tabController,
         children: [
-          ..._openTabs.map((tab) => tab.screen).toList(),
+          ..._openTabs.map((tab) => 
+            // Wrap each screen in AutomaticKeepAliveClientMixin to preserve state
+            KeepAliveWrapper(child: tab.screen)
+          ).toList(),
           // Empty container for the plus button tab
           const SizedBox.shrink(),
         ],
@@ -683,5 +752,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       trailing: const Icon(Icons.arrow_forward_ios),
       onTap: onTap,
     );
+  }
+}
+
+class KeepAliveWrapper extends StatefulWidget {
+  final Widget child;
+  
+  const KeepAliveWrapper({Key? key, required this.child}) : super(key: key);
+  
+  @override
+  State<KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<KeepAliveWrapper> 
+    with AutomaticKeepAliveClientMixin {
+  
+  @override
+  bool get wantKeepAlive => true;
+  
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
