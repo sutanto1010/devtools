@@ -30,6 +30,7 @@ import '../screens/yaml_to_json_screen.dart';
 import '../screens/string_replace_screen.dart';
 import '../screens/image_base64_screen.dart';
 import '../screens/html_viewer_screen.dart';
+import '../screens/json_to_go_screen.dart';
 
 class ToolsConfig {
   static final List<Map<String, dynamic>> allTools = [
@@ -242,6 +243,13 @@ class ToolsConfig {
       'title': 'Image ↔ Base64 Converter',
       'description': 'Convert images to Base64 and vice versa with preview and save functionality',
       'screen': const ImageBase64Screen(),
+    },
+    {
+      'id': 'json_to_go',
+      'icon': Icons.code_outlined,
+      'title': 'JSON to Go Struct',
+      'description': 'Convert JSON to Go struct with customizable options and field naming conventions',
+      'screen': const JsonToGoScreen(),
     },
     {
       'id': 'html_viewer',
