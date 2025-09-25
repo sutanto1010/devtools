@@ -18,6 +18,7 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
   List<String> _currentPath = [];
   Map<String, bool> _expandedNodes = {};
   Map<String, dynamic> _statistics = {};
+  bool _isFullscreen = false;
 
   @override
   void dispose() {
@@ -133,8 +134,172 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
     return text.toLowerCase().contains(_searchQuery.toLowerCase());
   }
 
+  void _toggleFullscreen() {
+    setState(() {
+      _isFullscreen = !_isFullscreen;
+    });
+  }
+
+  void _expandAllNodes(dynamic data, List<String> path) {
+    setState(() {
+      _expandAllNodesRecursive(data, path);
+    });
+  }
+
+  void _expandAllNodesRecursive(dynamic data, List<String> path) {
+    final pathKey = path.join('.');
+    _expandedNodes[pathKey] = true;
+    
+    if (data is Map) {
+      data.forEach((key, value) {
+        final newPath = [...path, key.toString()];
+        _expandAllNodesRecursive(value, newPath);
+      });
+    } else if (data is List) {
+      for (int i = 0; i < data.length; i++) {
+        final newPath = [...path, i.toString()];
+        _expandAllNodesRecursive(data[i], newPath);
+      }
+    }
+  }
+
+  void _collapseAllNodes() {
+    setState(() {
+      _expandedNodes.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isFullscreen && _jsonData != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('JSON Tree'),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 1,
+          actions: [
+            // Search field in fullscreen mode
+            SizedBox(
+              width: 300,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search in JSON...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Expand/Collapse buttons
+            IconButton(
+              icon: const Icon(Icons.unfold_more),
+              onPressed: () => _expandAllNodes(_jsonData, []),
+              tooltip: 'Expand All',
+            ),
+            IconButton(
+              icon: const Icon(Icons.unfold_less),
+              onPressed: _collapseAllNodes,
+              tooltip: 'Collapse All',
+            ),
+            const SizedBox(width: 8),
+            // Exit fullscreen button
+            IconButton(
+              icon: const Icon(Icons.fullscreen_exit),
+              onPressed: _toggleFullscreen,
+              tooltip: 'Exit Fullscreen',
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Path indicator in fullscreen
+            if (_currentPath.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Path: ${_currentPath.join('.')}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy, size: 16),
+                      onPressed: _copyPath,
+                      tooltip: 'Copy path',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.content_copy, size: 16),
+                      onPressed: _copyValue,
+                      tooltip: 'Copy value',
+                    ),
+                  ],
+                ),
+              ),
+            // Fullscreen tree view
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                child: Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SingleChildScrollView(
+                      child: _buildJsonTree(_jsonData, []),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       body: Column(
         children: [
@@ -283,10 +448,10 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
                         ],
                       ),
                     ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
           // JSON Tree View
           if (_jsonData != null)
@@ -294,11 +459,55 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SingleChildScrollView(
-                      child: _buildJsonTree(_jsonData, []),
-                    ),
+                  child: Column(
+                    children: [
+                      // Tree view header with controls
+                      Container(
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12.0),
+                            topRight: Radius.circular(12.0),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'JSON Tree',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.unfold_more, size: 18),
+                              onPressed: () => _expandAllNodes(_jsonData, []),
+                              tooltip: 'Expand All',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.unfold_less, size: 18),
+                              onPressed: _collapseAllNodes,
+                              tooltip: 'Collapse All',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.fullscreen, size: 18),
+                              onPressed: _toggleFullscreen,
+                              tooltip: 'Fullscreen View',
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Tree view content
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: _buildJsonTree(_jsonData, []),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -317,23 +526,6 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
         fontSize: 12,
       ),
     );
-  }
-
-  void _expandAllNodes(dynamic data, List<String> path) {
-    final pathKey = path.join('.');
-    _expandedNodes[pathKey] = true;
-    
-    if (data is Map) {
-      data.forEach((key, value) {
-        final newPath = [...path, key.toString()];
-        _expandAllNodes(value, newPath);
-      });
-    } else if (data is List) {
-      for (int i = 0; i < data.length; i++) {
-        final newPath = [...path, i.toString()];
-        _expandAllNodes(data[i], newPath);
-      }
-    }
   }
 
   Widget _buildJsonTree(dynamic data, List<String> path) {
