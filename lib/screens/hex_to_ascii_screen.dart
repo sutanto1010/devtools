@@ -197,17 +197,6 @@ class _HexToAsciiScreenState extends State<HexToAsciiScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hex ↔ ASCII Converter'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            onPressed: _copyToClipboard,
-            icon: const Icon(Icons.copy),
-            tooltip: 'Copy output to clipboard',
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

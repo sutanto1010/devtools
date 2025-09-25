@@ -236,17 +236,6 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('XML Formatter'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            onPressed: _copyOutput,
-            icon: const Icon(Icons.copy),
-            tooltip: 'Copy Output',
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

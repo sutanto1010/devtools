@@ -189,10 +189,6 @@ class _UuidScreenState extends State<UuidScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('UUID Generator/Validator'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

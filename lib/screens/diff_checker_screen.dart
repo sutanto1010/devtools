@@ -188,23 +188,6 @@ class _DiffCheckerScreenState extends State<DiffCheckerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Diff Checker'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.clear_all),
-            onPressed: _clearAll,
-            tooltip: 'Clear All',
-          ),
-          if (_diffLines.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.copy),
-              onPressed: _copyDiff,
-              tooltip: 'Copy Diff',
-            ),
-        ],
-      ),
       body: Column(
         children: [
           // Options panel

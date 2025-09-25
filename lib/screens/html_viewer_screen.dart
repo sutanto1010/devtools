@@ -231,27 +231,6 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('HTML Viewer'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            onPressed: _pasteFromClipboard,
-            icon: const Icon(Icons.content_paste),
-            tooltip: 'Paste from clipboard',
-          ),
-          IconButton(
-            onPressed: _loadFromFile,
-            icon: const Icon(Icons.file_open),
-            tooltip: 'Load HTML file',
-          ),
-          IconButton(
-            onPressed: _clearAll,
-            icon: const Icon(Icons.clear_all),
-            tooltip: 'Clear all',
-          ),
-        ],
-      ),
       body: Column(
         children: [
           // Controls Panel

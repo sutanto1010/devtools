@@ -144,54 +144,6 @@ class _RegexTesterScreenState extends State<RegexTesterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Regex Tester'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Regex Help'),
-                  content: const SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Common Regex Symbols:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('• . - Any character except newline'),
-                        Text('• * - Zero or more of the preceding'),
-                        Text('• + - One or more of the preceding'),
-                        Text('• ? - Zero or one of the preceding'),
-                        Text('• ^ - Start of string'),
-                        Text('• \$ - End of string'),
-                        Text('• [] - Character class'),
-                        Text('• () - Capturing group'),
-                        Text('• | - OR operator'),
-                        Text('• \\ - Escape character'),
-                        SizedBox(height: 10),
-                        Text('Character Classes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('• \\d - Digits (0-9)'),
-                        Text('• \\w - Word characters (a-z, A-Z, 0-9, _)'),
-                        Text('• \\s - Whitespace characters'),
-                        Text('• \\D, \\W, \\S - Negated versions'),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

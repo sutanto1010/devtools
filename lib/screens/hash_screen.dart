@@ -87,17 +87,6 @@ class _HashScreenState extends State<HashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('String Hash Generator'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            onPressed: _clearAll,
-            icon: const Icon(Icons.clear_all),
-            tooltip: 'Clear all',
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

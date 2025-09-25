@@ -84,10 +84,6 @@ class _BasicAuthScreenState extends State<BasicAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Basic Auth Generator'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

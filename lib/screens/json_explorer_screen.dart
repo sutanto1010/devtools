@@ -136,46 +136,6 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('JSON Explorer'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          if (_jsonData != null)
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'expand_all':
-                    setState(() {
-                      _expandAllNodes(_jsonData, []);
-                    });
-                    break;
-                  case 'collapse_all':
-                    setState(() {
-                      _expandedNodes.clear();
-                    });
-                    break;
-                  case 'copy_all':
-                    _copyToClipboard(jsonEncode(_jsonData));
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'expand_all',
-                  child: Text('Expand All'),
-                ),
-                const PopupMenuItem(
-                  value: 'collapse_all',
-                  child: Text('Collapse All'),
-                ),
-                const PopupMenuItem(
-                  value: 'copy_all',
-                  child: Text('Copy All JSON'),
-                ),
-              ],
-            ),
-        ],
-      ),
       body: Column(
         children: [
           // Input Section

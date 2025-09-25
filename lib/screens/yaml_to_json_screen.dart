@@ -216,10 +216,6 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isYamlToJson ? 'YAML to JSON Converter' : 'JSON to YAML Converter'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -292,17 +292,6 @@ class _UnixTimeScreenState extends State<UnixTimeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Unix Time Converter'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            onPressed: _clearAll,
-            icon: const Icon(Icons.clear_all),
-            tooltip: 'Clear All',
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

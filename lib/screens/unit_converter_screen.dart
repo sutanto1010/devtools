@@ -238,10 +238,6 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Unit Converter'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -320,27 +320,6 @@ class _StringReplaceScreenState extends State<StringReplaceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('String Replace Tool'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.content_paste),
-            onPressed: _pasteFromClipboard,
-            tooltip: 'Paste from clipboard',
-          ),
-          IconButton(
-            icon: const Icon(Icons.clear_all),
-            onPressed: _clearAll,
-            tooltip: 'Clear all',
-          ),
-          IconButton(
-            icon: const Icon(Icons.swap_vert),
-            onPressed: _swapInputOutput,
-            tooltip: 'Swap input/output',
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

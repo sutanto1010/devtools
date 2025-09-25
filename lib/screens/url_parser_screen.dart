@@ -206,64 +206,6 @@ class _UrlParserScreenState extends State<UrlParserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('URL Parser'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          if (_parsedUrl != null)
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'expand_all':
-                    setState(() {
-                      _expandAllNodes(_parsedUrl!, []);
-                    });
-                    break;
-                  case 'collapse_all':
-                    setState(() {
-                      _collapseAllNodes();
-                    });
-                    break;
-                  case 'copy_original':
-                    _copyToClipboard(_parsedUrl!['original']);
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'expand_all',
-                  child: Row(
-                    children: [
-                      Icon(Icons.unfold_more),
-                      SizedBox(width: 8),
-                      Text('Expand All'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'collapse_all',
-                  child: Row(
-                    children: [
-                      Icon(Icons.unfold_less),
-                      SizedBox(width: 8),
-                      Text('Collapse All'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'copy_original',
-                  child: Row(
-                    children: [
-                      Icon(Icons.copy),
-                      SizedBox(width: 8),
-                      Text('Copy Original URL'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -117,10 +117,6 @@ class _StringInspectorScreenState extends State<StringInspectorScreen> {
     final analysis = _analyzeString(_inputText);
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('String Inspector'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

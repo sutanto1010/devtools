@@ -172,17 +172,6 @@ class _GpgScreenState extends State<GpgScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('GPG Encrypt/Decrypt (OpenPGP)'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            onPressed: _importKeys,
-            icon: const Icon(Icons.file_upload),
-            tooltip: 'Import Keys',
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
