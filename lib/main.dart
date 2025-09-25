@@ -109,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   String _searchQuery = '';
   List<Map<String, dynamic>> _recentlyUsedTools = [];
   List<TabData> _openTabs = [];
-
+  
   final List<Map<String, dynamic>> _allTools = [
     {
       'id': 'json_formatter',
@@ -329,7 +329,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       'screen': const HtmlViewerScreen(),
     },
   ];
-
+  Widget createScreen(String toolId) {
+    final tool = _allTools.firstWhere((tool) => tool['id'] == toolId);
+    return tool['screen'];
+  }
   @override
   void initState() {
     super.initState();
@@ -428,36 +431,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void _openToolInTab(Map<String, dynamic> tool, {Map<String, dynamic>? sessionData}) {
-    // Check if tab is already open
-    final existingTabIndex = _openTabs.indexWhere((tab) => tab.id == tool['id']);
+    // Create new tab
+    final newTab = TabData(
+      id: tool['id'],
+      title: tool['title'],
+      icon: tool['icon'],
+      screen: createScreen(tool['id']),
+      sessionData: sessionData,
+    );
     
-    if (existingTabIndex != -1) {
-      // Tab already exists, switch to it
-      _tabController.animateTo(existingTabIndex);
-    } else {
-      // Create new tab
-      final newTab = TabData(
-        id: tool['id'],
-        title: tool['title'],
-        icon: tool['icon'],
-        screen: tool['screen'],
-        sessionData: sessionData,
-      );
-      
-      setState(() {
-        _openTabs.add(newTab);
-      });
-      
-      // Update tab controller - add 1 for plus button
-      _tabController.dispose();
-      _tabController = TabController(length: _openTabs.length + 1, vsync: this);
-      _tabController.addListener(_handleTabChange);
-      
-      // Switch to the new tab
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _tabController.animateTo(_openTabs.length - 1);
-      });
-    }
+    setState(() {
+      _openTabs.add(newTab);
+    });
+    
+    // Update tab controller - add 1 for plus button
+    _tabController.dispose();
+    _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+    _tabController.addListener(_handleTabChange);
+    
+    // Switch to the new tab
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tabController.animateTo(_openTabs.length - 1);
+    });
     
     _addToRecentlyUsed(tool['id'], sessionData: sessionData);
   }
