@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:screenshot/screenshot.dart';
+import 'package:screen_capturer/screen_capturer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -33,7 +33,6 @@ class ScreenshotScreen extends StatefulWidget {
 }
 
 class _ScreenshotScreenState extends State<ScreenshotScreen> {
-  final ScreenshotController _screenshotController = ScreenshotController();
   final TextEditingController _textController = TextEditingController();
   
   Uint8List? _imageData;
@@ -47,6 +46,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Offset? _endPoint;
   Rect? _cropRect;
   bool _isCropping = false;
+  bool _isCapturing = false;
 
   @override
   void dispose() {
@@ -89,19 +89,63 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
     }
   }
 
-  Future<void> _takeScreenshot() async {
+  Future<void> _takeScreenshot({CaptureMode mode = CaptureMode.region}) async {
+    if (_isCapturing) return;
+    
+    setState(() {
+      _isCapturing = true;
+    });
+
     try {
-      final imageData = await _screenshotController.capture();
-      if (imageData != null) {
-        setState(() {
-          _imageData = imageData;
-          _drawingPoints.clear();
-          _cropRect = null;
-        });
+      // Create a temporary directory for the screenshot
+      final directory = await getTemporaryDirectory();
+      final fileName = 'screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
+      final imagePath = '${directory.path}/$fileName';
+
+      // Capture screenshot using screen_capturer
+      CapturedData? capturedData = await screenCapturer.capture(
+        mode: mode,
+        imagePath: imagePath,
+        copyToClipboard: false,
+      );
+
+      if (capturedData != null && capturedData.imagePath != null) {
+        // Read the captured image file
+        final file = File(capturedData.imagePath!);
+        if (await file.exists()) {
+          final imageData = await file.readAsBytes();
+          setState(() {
+            _imageData = imageData;
+            _drawingPoints.clear();
+            _cropRect = null;
+          });
+          await _decodeImage(imageData);
+          
+          // Clean up temporary file
+          await file.delete();
+        }
+      } else {
+        _showSnackBar('Screenshot capture was cancelled or failed');
       }
     } catch (e) {
       _showSnackBar('Error taking screenshot: $e');
+    } finally {
+      setState(() {
+        _isCapturing = false;
+      });
     }
+  }
+
+  Future<void> _captureFullScreen() async {
+    await _takeScreenshot(mode: CaptureMode.screen);
+  }
+
+  Future<void> _captureWindow() async {
+    await _takeScreenshot(mode: CaptureMode.window);
+  }
+
+  Future<void> _captureRegion() async {
+    await _takeScreenshot(mode: CaptureMode.region);
   }
 
   Future<void> _saveImage() async {
@@ -109,7 +153,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
 
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName = 'edited_screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
       final file = File('${directory.path}/$fileName');
       
       // Create a canvas to draw the image with annotations
@@ -362,14 +406,43 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
             child: Column(
               children: [
                 // Action buttons
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: _takeScreenshot,
-                      icon: const Icon(Icons.screenshot),
-                      label: const Text('Take Screenshot'),
+                      onPressed: _isCapturing ? null : _captureRegion,
+                      icon: _isCapturing 
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.crop_free),
+                      label: const Text('Capture Region'),
                     ),
-                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: _isCapturing ? null : _captureFullScreen,
+                      icon: _isCapturing 
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.fullscreen),
+                      label: const Text('Full Screen'),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _isCapturing ? null : _captureWindow,
+                      icon: _isCapturing 
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.web_asset),
+                      label: const Text('Capture Window'),
+                    ),
                     ElevatedButton.icon(
                       onPressed: _loadImage,
                       icon: const Icon(Icons.image),
@@ -434,44 +507,60 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
           // Image display area
           Expanded(
             child: _imageData == null
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.screenshot, size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'Take a screenshot or load an image to start editing',
+                        const Icon(Icons.screenshot, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Capture a screenshot or load an image to start editing',
                           style: TextStyle(fontSize: 16, color: Colors.grey),
                           textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'Capture Modes:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text('• Region: Drag to select an area'),
+                                const Text('• Full Screen: Capture entire screen'),
+                                const Text('• Window: Select a specific window'),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   )
-                : Screenshot(
-                    controller: _screenshotController,
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: Colors.white,
-                      child: GestureDetector(
-                        onPanStart: _onPanStart,
-                        onPanUpdate: _onPanUpdate,
-                        onPanEnd: _onPanEnd,
-                        child: CustomPaint(
-                          painter: ImagePainter(
-                            imageData: _imageData!,
-                            decodedImage: _decodedImage,
-                            drawingPoints: _drawingPoints,
-                            currentTool: _selectedTool,
-                            startPoint: _startPoint,
-                            endPoint: _endPoint,
-                            currentColor: _selectedColor,
-                            currentStrokeWidth: _strokeWidth,
-                            isDrawing: _isDrawing,
-                          ),
-                          size: Size.infinite,
+                : Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Colors.white,
+                    child: GestureDetector(
+                      onPanStart: _onPanStart,
+                      onPanUpdate: _onPanUpdate,
+                      onPanEnd: _onPanEnd,
+                      child: CustomPaint(
+                        painter: ImagePainter(
+                          imageData: _imageData!,
+                          decodedImage: _decodedImage,
+                          drawingPoints: _drawingPoints,
+                          currentTool: _selectedTool,
+                          startPoint: _startPoint,
+                          endPoint: _endPoint,
+                          currentColor: _selectedColor,
+                          currentStrokeWidth: _strokeWidth,
+                          isDrawing: _isDrawing,
                         ),
+                        size: Size.infinite,
                       ),
                     ),
                   ),
