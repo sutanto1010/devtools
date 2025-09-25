@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Developer Tools'),
+      home: const MyHomePage(),
     );
   }
 }
@@ -93,9 +93,7 @@ class TabData {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -106,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SystemTrayManager _systemTrayManager = SystemTrayManager();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   
   String _searchQuery = '';
   List<Map<String, dynamic>> _recentlyUsedTools = [];
@@ -334,7 +333,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _openTabs.length, vsync: this);
+    // Add 1 to length for the plus button tab
+    _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+    _tabController.addListener(_handleTabChange);
     _loadRecentlyUsedTools();
     // init system tray
     _systemTrayManager.initSystemTray();
@@ -353,6 +354,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     };
   }
 
+  void _handleTabChange() {
+    // If the plus button tab is selected, open drawer and switch back to previous tab
+    if (_tabController.index == _openTabs.length) {
+      _scaffoldKey.currentState?.openDrawer();
+      // Switch back to the last actual tab
+      if (_openTabs.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _tabController.animateTo(_openTabs.length - 1);
+        });
+      }
+    }
+  }
+
   void _handleSystemTrayToolSelection(String toolId) {
     final tool = _allTools.firstWhere(
       (tool) => tool['id'] == toolId,
@@ -367,6 +381,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -434,9 +449,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _openTabs.add(newTab);
       });
       
-      // Update tab controller
+      // Update tab controller - add 1 for plus button
       _tabController.dispose();
-      _tabController = TabController(length: _openTabs.length, vsync: this);
+      _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+      _tabController.addListener(_handleTabChange);
       
       // Switch to the new tab
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -454,10 +470,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _openTabs.removeAt(index);
     });
     
-    // Update tab controller
+    // Update tab controller - add 1 for plus button
     final currentIndex = _tabController.index;
     _tabController.dispose();
-    _tabController = TabController(length: _openTabs.length, vsync: this);
+    _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+    _tabController.addListener(_handleTabChange);
     
     // Adjust current tab index if necessary
     if (currentIndex >= _openTabs.length) {
@@ -504,38 +521,50 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48.0),
+          preferredSize: const Size.fromHeight(0),
           child: Container(
             height: 48.0,
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              tabs: _openTabs.asMap().entries.map((entry) {
-                final index = entry.key;
-                final tab = entry.value;
-                return Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(tab.icon, size: 16),
-                      const SizedBox(width: 8),
-                      Text(tab.title),
-                      if (_openTabs.length > 1) ...[
+              onTap: (index) {
+                // If the plus button tab is tapped, open drawer
+                if (index == _openTabs.length) {
+                  _scaffoldKey.currentState?.openDrawer();
+                }
+              },
+              tabs: [
+                ..._openTabs.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final tab = entry.value;
+                  return Tab(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(tab.icon, size: 16),
                         const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => _closeTab(index),
-                          child: const Icon(Icons.close, size: 16),
-                        ),
+                        Text(tab.title),
+                        if (_openTabs.length > 1) ...[
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => _closeTab(index),
+                            child: const Icon(Icons.close, size: 16),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                );
-              }).toList(),
+                    ),
+                  );
+                }),
+                // Plus button tab
+                const Tab(
+                  child: Icon(Icons.add, size: 20),
+                ),
+              ],
             ),
           ),
         ),
@@ -637,241 +666,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
       body: TabBarView(
         controller: _tabController,
-        children: _openTabs.map((tab) => tab.screen).toList(),
+        children: [
+          ..._openTabs.map((tab) => tab.screen).toList(),
+          // Empty container for the plus button tab
+          const SizedBox.shrink(),
+        ],
       ),
-    );
-  }
-
-  Widget _buildHomeContent() {
-    return Column(
-      children: [
-        // Home tab content
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.developer_mode,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Welcome to Developer Tools!',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _recentTools.isEmpty
-                        ? 'Use the menu to access various formatting and conversion tools'
-                        : 'Recently used tools:',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  if (_recentTools.isNotEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: _recentTools
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                            final index = entry.key;
-                            final tool = entry.value;
-                            return Column(
-                              children: [
-                                if (index > 0) const Divider(),
-                                _buildToolCard(
-                                  context,
-                                  IconData(tool['iconCodePoint']),
-                                  tool['title'],
-                                  tool['description'],
-                                  () => _openToolInTab(tool),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                  if (_recentTools.isEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Text(
-                              'No recent tools',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Open the menu to browse all available tools',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        // History section
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Usage History',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    if (_historyTools.isNotEmpty)
-                      TextButton.icon(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Clear History'),
-                              content: const Text('Are you sure you want to clear all usage history?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _clearHistory();
-                                  },
-                                  child: const Text('Clear'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.clear_all),
-                        label: const Text('Clear'),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: _historyTools.isEmpty
-                      ? const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.history,
-                                size: 64,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                'No usage history',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Tools you use will appear here',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _historyTools.length,
-                          itemBuilder: (context, index) {
-                            final historyItem = _historyTools[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 8.0),
-                              child: ListTile(
-                                leading: Icon(
-                                  IconData(historyItem['iconCodePoint']),
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                title: Text(historyItem['title']),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(historyItem['description']),
-                                    if (historyItem['sessionData'] != null)
-                                      Text(
-                                        'Has saved session data',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context).colorScheme.secondary,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
-                                    Text(
-                                      _formatTimestamp(historyItem['timestamp']),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('Delete History Item'),
-                                            content: const Text('Are you sure you want to delete this history item?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  Navigator.pop(context);
-                                                  await _dbHelper.deleteHistoryItem(historyItem['historyId']);
-                                                  await _loadRecentlyUsedTools();
-                                                },
-                                                child: const Text('Delete'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const Icon(Icons.arrow_forward_ios),
-                                  ],
-                                ),
-                                onTap: () => _navigateToHistoryItem(historyItem),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
