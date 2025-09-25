@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:file_picker/file_picker.dart';
@@ -118,6 +119,7 @@ class ScreenshotScreen extends StatefulWidget {
 
 class _ScreenshotScreenState extends State<ScreenshotScreen> {
   final TextEditingController _textController = TextEditingController();
+  final GlobalKey _repaintBoundaryKey = GlobalKey();
   
   Uint8List? _imageData;
   ui.Image? _decodedImage;
@@ -278,25 +280,13 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
     if (_imageData == null) return;
 
     try {
-      // Create a canvas to draw the image with annotations
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
+      // Capture the RepaintBoundary widget as an image
+      RenderRepaintBoundary boundary = _repaintBoundaryKey.currentContext!
+          .findRenderObject() as RenderRepaintBoundary;
       
-      // Decode and draw the original image
-      final codec = await ui.instantiateImageCodec(_imageData!);
-      final frame = await codec.getNextFrame();
-      final image = frame.image;
-      
-      canvas.drawImage(image, Offset.zero, Paint());
-      
-      // Draw all annotations
-      for (final point in _drawingPoints) {
-        _drawOnCanvas(canvas, point);
-      }
-      
-      final picture = recorder.endRecording();
-      final img = await picture.toImage(image.width, image.height);
-      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+      // Convert the widget to an image
+      ui.Image image = await boundary.toImage(pixelRatio: 1.0);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       
       if (byteData != null) {
         // Use super_clipboard to copy binary image data
@@ -305,13 +295,18 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
           final item = DataWriterItem();
           item.add(Formats.png(byteData.buffer.asUint8List()));
           await clipboard.write([item]);
-          _showSnackBar('Image copied to clipboard!');
+          _showSnackBar('Image with annotations copied to clipboard!');
         } else {
           _showSnackBar('Clipboard not available');
         }
       }
+      
+      // Clean up resources
+      image.dispose();
+      
     } catch (e) {
       _showSnackBar('Error copying to clipboard: $e');
+      print('Clipboard error details: $e'); // Debug info
     }
   }
 
@@ -765,27 +760,30 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                       ],
                     ),
                   )
-                : Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: Colors.white,
-                    child: GestureDetector(
-                      onPanStart: _onPanStart,
-                      onPanUpdate: _onPanUpdate,
-                      onPanEnd: _onPanEnd,
-                      child: CustomPaint(
-                        painter: ImagePainter(
-                          imageData: _imageData!,
-                          decodedImage: _decodedImage,
-                          drawingPoints: _drawingPoints,
-                          currentTool: _selectedTool,
-                          startPoint: _startPoint,
-                          endPoint: _endPoint,
-                          currentColor: _selectedColor,
-                          currentStrokeWidth: _strokeWidth,
-                          isDrawing: _isDrawing,
+                : RepaintBoundary(
+                    key: _repaintBoundaryKey,
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.white,
+                      child: GestureDetector(
+                        onPanStart: _onPanStart,
+                        onPanUpdate: _onPanUpdate,
+                        onPanEnd: _onPanEnd,
+                        child: CustomPaint(
+                          painter: ImagePainter(
+                            imageData: _imageData!,
+                            decodedImage: _decodedImage,
+                            drawingPoints: _drawingPoints,
+                            currentTool: _selectedTool,
+                            startPoint: _startPoint,
+                            endPoint: _endPoint,
+                            currentColor: _selectedColor,
+                            currentStrokeWidth: _strokeWidth,
+                            isDrawing: _isDrawing,
+                          ),
+                          size: Size.infinite,
                         ),
-                        size: Size.infinite,
                       ),
                     ),
                   ),
