@@ -339,6 +339,7 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
   Widget _buildJsonTree(dynamic data, List<String> path) {
     final pathKey = path.join('.');
     final isExpanded = _expandedNodes[pathKey] ?? false;
+    final depth = path.length;
     
     if (data is Map) {
       return Column(
@@ -346,14 +347,25 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
         children: [
           if (path.isNotEmpty)
             _buildNodeHeader(
-              '{ } Object (${data.length} ${data.length == 1 ? 'key' : 'keys'})',
+              'Object',
+              '${data.length} ${data.length == 1 ? 'property' : 'properties'}',
               path,
               isExpanded,
-              Icons.data_object,
+              Icons.data_object_outlined,
+              Theme.of(context).colorScheme.primary,
             ),
           if (isExpanded || path.isEmpty)
-            Padding(
-              padding: EdgeInsets.only(left: path.isEmpty ? 0 : 16.0),
+            Container(
+              decoration: depth > 0 ? BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    width: 1.0,
+                  ),
+                ),
+              ) : null,
+              margin: EdgeInsets.only(left: depth > 0 ? 12.0 : 0),
+              padding: EdgeInsets.only(left: depth > 0 ? 12.0 : 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: data.entries
@@ -361,35 +373,73 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
                         _matchesSearch(entry.value.toString()))
                     .map((entry) {
                   final newPath = [...path, entry.key.toString()];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 120,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _currentPath = newPath;
-                              });
-                            },
-                            child: Text(
-                              '"${entry.key}":',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                                decoration: _currentPath.join('.') == newPath.join('.')
-                                    ? TextDecoration.underline
-                                    : null,
+                  final isSelected = _currentPath.join('.') == newPath.join('.');
+                  
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 1.0),
+                    decoration: BoxDecoration(
+                      color: isSelected 
+                          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+                          : null,
+                      borderRadius: BorderRadius.circular(6.0),
+                      border: isSelected ? Border.all(
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                        width: 1.0,
+                      ) : null,
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(6.0),
+                      onTap: () {
+                        setState(() {
+                          _currentPath = newPath;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              constraints: const BoxConstraints(minWidth: 140),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.key,
+                                    size: 14,
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      '"${entry.key}"',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontSize: 13,
+                                        fontFamily: 'monospace',
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    ':',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildJsonTree(entry.value, newPath),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          child: _buildJsonTree(entry.value, newPath),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 }).toList(),
@@ -403,49 +453,95 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
         children: [
           if (path.isNotEmpty)
             _buildNodeHeader(
-              '[ ] Array (${data.length} ${data.length == 1 ? 'item' : 'items'})',
+              'Array',
+              '${data.length} ${data.length == 1 ? 'item' : 'items'}',
               path,
               isExpanded,
-              Icons.data_array,
+              Icons.data_array_outlined,
+              Theme.of(context).colorScheme.secondary,
             ),
           if (isExpanded || path.isEmpty)
-            Padding(
-              padding: EdgeInsets.only(left: path.isEmpty ? 0 : 16.0),
+            Container(
+              decoration: depth > 0 ? BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    width: 1.0,
+                  ),
+                ),
+              ) : null,
+              margin: EdgeInsets.only(left: depth > 0 ? 12.0 : 0),
+              padding: EdgeInsets.only(left: depth > 0 ? 12.0 : 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: data.asMap().entries
                     .where((entry) => _matchesSearch(entry.value.toString()))
                     .map((entry) {
                   final newPath = [...path, entry.key.toString()];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 120,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _currentPath = newPath;
-                              });
-                            },
-                            child: Text(
-                              '[${entry.key}]:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.secondary,
-                                decoration: _currentPath.join('.') == newPath.join('.')
-                                    ? TextDecoration.underline
-                                    : null,
+                  final isSelected = _currentPath.join('.') == newPath.join('.');
+                  
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 1.0),
+                    decoration: BoxDecoration(
+                      color: isSelected 
+                          ? Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5)
+                          : null,
+                      borderRadius: BorderRadius.circular(6.0),
+                      border: isSelected ? Border.all(
+                        color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                        width: 1.0,
+                      ) : null,
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(6.0),
+                      onTap: () {
+                        setState(() {
+                          _currentPath = newPath;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              constraints: const BoxConstraints(minWidth: 140),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.looks_one_outlined,
+                                    size: 14,
+                                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '[${entry.key}]',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).colorScheme.secondary,
+                                      fontSize: 13,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                  Text(
+                                    ':',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildJsonTree(entry.value, newPath),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          child: _buildJsonTree(entry.value, newPath),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 }).toList(),
@@ -454,79 +550,201 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
         ],
       );
     } else {
-      return GestureDetector(
-        onTap: () {
-          setState(() {
-            _currentPath = path;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          decoration: BoxDecoration(
-            color: _currentPath.join('.') == path.join('.')
-                ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-                : null,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                _getValueIcon(data),
-                size: 16,
-                color: _getValueColor(data),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  _formatValue(data),
-                  style: TextStyle(
-                    color: _getValueColor(data),
-                    fontFamily: 'monospace',
+      final isSelected = _currentPath.join('.') == path.join('.');
+      return Container(
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.5)
+              : null,
+          borderRadius: BorderRadius.circular(6.0),
+          border: isSelected ? Border.all(
+            color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+            width: 1.0,
+          ) : null,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(6.0),
+          onTap: () {
+            setState(() {
+              _currentPath = path;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                  decoration: BoxDecoration(
+                    color: _getValueColor(data).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4.0),
+                    border: Border.all(
+                      color: _getValueColor(data).withOpacity(0.3),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getValueIcon(data),
+                        size: 12,
+                        color: _getValueColor(data),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _getValueTypeLabel(data),
+                        style: TextStyle(
+                          color: _getValueColor(data),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.copy, size: 16),
-                onPressed: () => _copyToClipboard(_formatValue(data)),
-                tooltip: 'Copy value',
-              ),
-            ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _formatValue(data),
+                    style: TextStyle(
+                      color: _getValueColor(data),
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4.0),
+                    onTap: () => _copyToClipboard(_formatValue(data)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(
+                        Icons.copy_outlined,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
   }
 
-  Widget _buildNodeHeader(String title, List<String> path, bool isExpanded, IconData icon) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          final pathKey = path.join('.');
-          _expandedNodes[pathKey] = !isExpanded;
-          _currentPath = path;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        decoration: BoxDecoration(
-          color: _currentPath.join('.') == path.join('.')
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-              : null,
-          borderRadius: BorderRadius.circular(4.0),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isExpanded ? Icons.expand_more : Icons.chevron_right,
-              size: 16,
+  Widget _buildNodeHeader(String type, String count, List<String> path, bool isExpanded, IconData icon, Color color) {
+    final isSelected = _currentPath.join('.') == path.join('.');
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2.0),
+      decoration: BoxDecoration(
+        color: isSelected 
+            ? color.withOpacity(0.1)
+            : null,
+        borderRadius: BorderRadius.circular(8.0),
+        border: isSelected ? Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.0,
+        ) : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8.0),
+          onTap: () {
+            setState(() {
+              final pathKey = path.join('.');
+              _expandedNodes[pathKey] = !isExpanded;
+              _currentPath = path;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Icon(
+                    isExpanded ? Icons.expand_more : Icons.chevron_right,
+                    size: 16,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6.0),
+                    border: Border.all(
+                      color: color.withOpacity(0.3),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 16,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  type,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Text(
+                    count,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                if (isSelected)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Text(
+                      'Selected',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: color,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            Icon(icon, size: 16),
-            const SizedBox(width: 4),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -541,11 +759,21 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
   }
 
   Color _getValueColor(dynamic value) {
-    if (value is String) return Colors.green;
-    if (value is num) return Colors.blue;
-    if (value is bool) return Colors.orange;
-    if (value == null) return Colors.grey;
-    return Colors.black;
+    final colorScheme = Theme.of(context).colorScheme;
+    if (value is String) return const Color(0xFF2E7D32); // Green
+    if (value is num) return const Color(0xFF1565C0); // Blue
+    if (value is bool) return const Color(0xFFEF6C00); // Orange
+    if (value == null) return colorScheme.onSurface.withOpacity(0.6); // Grey
+    return colorScheme.onSurface;
+  }
+
+  String _getValueTypeLabel(dynamic value) {
+    if (value is String) return 'str';
+    if (value is int) return 'int';
+    if (value is double) return 'num';
+    if (value is bool) return 'bool';
+    if (value == null) return 'null';
+    return 'val';
   }
 
   String _formatValue(dynamic value) {
