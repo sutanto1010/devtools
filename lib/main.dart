@@ -76,6 +76,22 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class TabData {
+  final String id;
+  final String title;
+  final IconData icon;
+  final Widget screen;
+  final Map<String, dynamic>? sessionData;
+
+  TabData({
+    required this.id,
+    required this.title,
+    required this.icon,
+    required this.screen,
+    this.sessionData,
+  });
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -93,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   
   String _searchQuery = '';
   List<Map<String, dynamic>> _recentlyUsedTools = [];
+  List<TabData> _openTabs = [];
 
   final List<Map<String, dynamic>> _allTools = [
     {
@@ -317,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: _openTabs.length, vsync: this);
     _loadRecentlyUsedTools();
     // init system tray
     _systemTrayManager.initSystemTray();
@@ -343,7 +360,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
     
     if (tool.isNotEmpty) {
-      _navigateToTool(tool);
+      _openToolInTab(tool);
     }
   }
 
@@ -396,20 +413,60 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }).toList();
   }
 
-  void _navigateToTool(Map<String, dynamic> tool, {Map<String, dynamic>? sessionData}) {
-    _addToRecentlyUsed(tool['id'], sessionData: sessionData);
+  void _openToolInTab(Map<String, dynamic> tool, {Map<String, dynamic>? sessionData}) {
+    // Check if tab is already open
+    final existingTabIndex = _openTabs.indexWhere((tab) => tab.id == tool['id']);
     
-    // If this is from history and has session data, pass it to the screen
-    Widget screen = tool['screen'];
-    if (sessionData != null) {
-      // You'll need to modify each screen to accept session data
-      // For now, just navigate normally
+    if (existingTabIndex != -1) {
+      // Tab already exists, switch to it
+      _tabController.animateTo(existingTabIndex);
+    } else {
+      // Create new tab
+      final newTab = TabData(
+        id: tool['id'],
+        title: tool['title'],
+        icon: tool['icon'],
+        screen: tool['screen'],
+        sessionData: sessionData,
+      );
+      
+      setState(() {
+        _openTabs.add(newTab);
+      });
+      
+      // Update tab controller
+      _tabController.dispose();
+      _tabController = TabController(length: _openTabs.length, vsync: this);
+      
+      // Switch to the new tab
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _tabController.animateTo(_openTabs.length - 1);
+      });
     }
     
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
-    );
+    _addToRecentlyUsed(tool['id'], sessionData: sessionData);
+  }
+
+  void _closeTab(int index) {
+    if (_openTabs.length <= 1) return; // Don't close the last tab
+    
+    setState(() {
+      _openTabs.removeAt(index);
+    });
+    
+    // Update tab controller
+    final currentIndex = _tabController.index;
+    _tabController.dispose();
+    _tabController = TabController(length: _openTabs.length, vsync: this);
+    
+    // Adjust current tab index if necessary
+    if (currentIndex >= _openTabs.length) {
+      _tabController.index = _openTabs.length - 1;
+    } else if (currentIndex > index) {
+      _tabController.index = currentIndex - 1;
+    } else {
+      _tabController.index = currentIndex;
+    }
   }
 
   Future<void> _clearHistory() async {
@@ -425,7 +482,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
     
     if (tool.isNotEmpty) {
-      _navigateToTool(tool, sessionData: historyItem['sessionData']);
+      _openToolInTab(tool, sessionData: historyItem['sessionData']);
     }
   }
 
@@ -450,12 +507,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.home), text: 'Home'),
-            Tab(icon: Icon(Icons.history), text: 'History'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48.0),
+          child: Container(
+            height: 48.0,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              tabs: _openTabs.asMap().entries.map((entry) {
+                final index = entry.key;
+                final tab = entry.value;
+                return Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(tab.icon, size: 16),
+                      const SizedBox(width: 8),
+                      Text(tab.title),
+                      if (_openTabs.length > 1) ...[
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _closeTab(index),
+                          child: const Icon(Icons.close, size: 16),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ),
       ),
       drawer: Drawer(
@@ -544,7 +626,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           subtitle: Text(tool['description']),
                           onTap: () {
                             Navigator.pop(context);
-                            _navigateToTool(tool);
+                            _openToolInTab(tool);
                           },
                         );
                       },
@@ -555,237 +637,241 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildHomeTab(),
-          _buildHistoryTab(),
-        ],
+        children: _openTabs.map((tab) => tab.screen).toList(),
       ),
     );
   }
 
-  Widget _buildHomeTab() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.developer_mode,
-              size: 80,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Welcome to Developer Tools!',
-              style: Theme.of(context).textTheme.headlineMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _recentTools.isEmpty
-                  ? 'Use the menu to access various formatting and conversion tools'
-                  : 'Recently used tools:',
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            if (_recentTools.isNotEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: _recentTools
-                        .asMap()
-                        .entries
-                        .map((entry) {
-                      final index = entry.key;
-                      final tool = entry.value;
-                      return Column(
-                        children: [
-                          if (index > 0) const Divider(),
-                          _buildToolCard(
-                            context,
-                            IconData(tool['iconCodePoint']),
-                            tool['title'],
-                            tool['description'],
-                            () => _navigateToTool(tool),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+  Widget _buildHomeContent() {
+    return Column(
+      children: [
+        // Home tab content
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.developer_mode,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                ),
-              ),
-            if (_recentTools.isEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'No recent tools',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Open the menu to browse all available tools',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                  const SizedBox(height: 24),
+                  Text(
+                    'Welcome to Developer Tools!',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
                   ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHistoryTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Usage History',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              if (_historyTools.isNotEmpty)
-                TextButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Clear History'),
-                        content: const Text('Are you sure you want to clear all usage history?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _clearHistory();
-                            },
-                            child: const Text('Clear'),
-                          ),
-                        ],
+                  const SizedBox(height: 16),
+                  Text(
+                    _recentTools.isEmpty
+                        ? 'Use the menu to access various formatting and conversion tools'
+                        : 'Recently used tools:',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  if (_recentTools.isNotEmpty)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: _recentTools
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                            final index = entry.key;
+                            final tool = entry.value;
+                            return Column(
+                              children: [
+                                if (index > 0) const Divider(),
+                                _buildToolCard(
+                                  context,
+                                  IconData(tool['iconCodePoint']),
+                                  tool['title'],
+                                  tool['description'],
+                                  () => _openToolInTab(tool),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.clear_all),
-                  label: const Text('Clear'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _historyTools.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.history,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No usage history',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Tools you use will appear here',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: _historyTools.length,
-                    itemBuilder: (context, index) {
-                      final historyItem = _historyTools[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8.0),
-                        child: ListTile(
-                          leading: Icon(
-                            IconData(historyItem['iconCodePoint']),
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: Text(historyItem['title']),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(historyItem['description']),
-                              if (historyItem['sessionData'] != null)
-                                Text(
-                                  'Has saved session data',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.secondary,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              Text(
-                                _formatTimestamp(historyItem['timestamp']),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Delete History Item'),
-                                      content: const Text('Are you sure you want to delete this history item?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () async {
-                                            Navigator.pop(context);
-                                            await _dbHelper.deleteHistoryItem(historyItem['historyId']);
-                                            await _loadRecentlyUsedTools();
-                                          },
-                                          child: const Text('Delete'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                              const Icon(Icons.arrow_forward_ios),
-                            ],
-                          ),
-                          onTap: () => _navigateToHistoryItem(historyItem),
+                  if (_recentTools.isEmpty)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'No recent tools',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Open the menu to browse all available tools',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
+        ),
+        // History section
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Usage History',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    if (_historyTools.isNotEmpty)
+                      TextButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Clear History'),
+                              content: const Text('Are you sure you want to clear all usage history?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _clearHistory();
+                                  },
+                                  child: const Text('Clear'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.clear_all),
+                        label: const Text('Clear'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: _historyTools.isEmpty
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.history,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'No usage history',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Tools you use will appear here',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _historyTools.length,
+                          itemBuilder: (context, index) {
+                            final historyItem = _historyTools[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8.0),
+                              child: ListTile(
+                                leading: Icon(
+                                  IconData(historyItem['iconCodePoint']),
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                title: Text(historyItem['title']),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(historyItem['description']),
+                                    if (historyItem['sessionData'] != null)
+                                      Text(
+                                        'Has saved session data',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Theme.of(context).colorScheme.secondary,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    Text(
+                                      _formatTimestamp(historyItem['timestamp']),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline),
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('Delete History Item'),
+                                            content: const Text('Are you sure you want to delete this history item?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  Navigator.pop(context);
+                                                  await _dbHelper.deleteHistoryItem(historyItem['historyId']);
+                                                  await _loadRecentlyUsedTools();
+                                                },
+                                                child: const Text('Delete'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios),
+                                  ],
+                                ),
+                                onTap: () => _navigateToHistoryItem(historyItem),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
