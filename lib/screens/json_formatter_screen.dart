@@ -109,8 +109,9 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     required TextEditingController controller,
     required String hintText,
     bool readOnly = false,
+    bool isInput = true,
   }) {
-    if (!_isHighlighterReady || _jsonHighlighter == null) {
+    if (!_isHighlighterReady || _jsonHighlighter == null || isInput) {
       // Fallback to regular TextField if highlighter is not ready
       return TextField(
         controller: controller,
@@ -129,23 +130,27 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       );
     }
 
-    return TextField(
-      controller: controller,
-      maxLines: null,
-      expands: true,
-      readOnly: readOnly,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        hintText: hintText,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(4),
       ),
-      textAlignVertical: TextAlignVertical.top,
-      style: const TextStyle(
-        fontFamily: 'monospace',
-        fontSize: 14,
+      child: Column(
+        children: [
+          Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
+                ),
+                child: SingleChildScrollView(
+                  child: _buildHighlightedText(controller.text, ''),
+                ),
+              ),
+            ),
+        ],
       ),
-      onChanged: (value) {
-        setState(() {}); // Trigger rebuild for syntax highlighting
-      },
     );
   }
 
@@ -212,6 +217,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                     child: _buildHighlightedTextField(
                       controller: _inputController,
                       hintText: 'Paste your JSON here...',
+                      isInput: true,
                     ),
                   ),
                 ],
@@ -274,6 +280,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                       controller: _outputController,
                       hintText: 'Formatted JSON will appear here...',
                       readOnly: true,
+                      isInput: false,
                     ),
                   ),
                 ],
