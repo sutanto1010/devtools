@@ -902,23 +902,23 @@ class ImagePainter extends CustomPainter {
       final imageAspectRatio = decodedImage!.width / decodedImage!.height;
       final canvasAspectRatio = size.width / size.height;
       
-      double drawWidth, drawHeight;
-      double offsetX = 0, offsetY = 0;
+      double srcWidth, srcHeight;
+      double srcX = 0, srcY = 0;
       
       if (imageAspectRatio > canvasAspectRatio) {
-        // Image is wider than canvas
-        drawWidth = size.width;
-        drawHeight = size.width / imageAspectRatio;
-        offsetY = (size.height - drawHeight) / 2;
+        // Image is wider - crop horizontally
+        srcHeight = decodedImage!.height.toDouble();
+        srcWidth = srcHeight * canvasAspectRatio;
+        srcX = (decodedImage!.width - srcWidth) / 2;
       } else {
-        // Image is taller than canvas
-        drawHeight = size.height;
-        drawWidth = size.height * imageAspectRatio;
-        offsetX = (size.width - drawWidth) / 2;
+        // Image is taller - crop vertically
+        srcWidth = decodedImage!.width.toDouble();
+        srcHeight = srcWidth / canvasAspectRatio;
+        srcY = (decodedImage!.height - srcHeight) / 2;
       }
       
-      final destRect = Rect.fromLTWH(offsetX, offsetY, drawWidth, drawHeight);
-      final srcRect = Rect.fromLTWH(0, 0, decodedImage!.width.toDouble(), decodedImage!.height.toDouble());
+      final destRect = Rect.fromLTWH(0, 0, size.width, size.height);
+      final srcRect = Rect.fromLTWH(srcX, srcY, srcWidth, srcHeight);
       
       canvas.drawImageRect(decodedImage!, srcRect, destRect, Paint());
     } else {
