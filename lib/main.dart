@@ -356,15 +356,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void _handleTabChange() {
     // If the plus button tab is selected, open drawer and switch back to previous tab
-    if (_tabController.index == _openTabs.length) {
-      _scaffoldKey.currentState?.openDrawer();
-      // Switch back to the last actual tab
-      if (_openTabs.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _tabController.animateTo(_openTabs.length - 1);
-        });
-      }
-    }
+    // if (_tabController.index == _openTabs.length) {
+    //   // Switch back to the last actual tab
+    //   if (_openTabs.isNotEmpty) {
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       _tabController.animateTo(_openTabs.length - 1);
+    //     });
+    //   }
+    // }
   }
 
   void _handleSystemTrayToolSelection(String toolId) {
