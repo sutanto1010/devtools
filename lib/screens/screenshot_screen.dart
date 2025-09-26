@@ -25,18 +25,36 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
     super.dispose();
   }
 
-  Future<void> _loadImage() async {
+    Future<void> _loadImage() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );
 
-      if (result != null && result.files.single.bytes != null) {
-        final imageData = result.files.single.bytes!;
-        setState(() {
-          _imageData = imageData;
-        });
+      if (result != null) {
+        Uint8List? imageData;
+        
+        // For web platforms, use bytes directly
+        if (result.files.single.bytes != null) {
+          imageData = result.files.single.bytes!;
+        } 
+        // For desktop platforms, read from file path
+        else if (result.files.single.path != null) {
+          final file = File(result.files.single.path!);
+          if (await file.exists()) {
+            imageData = await file.readAsBytes();
+          }
+        }
+        
+        if (imageData != null) {
+          setState(() {
+            _imageData = imageData;
+          });
+          _showSnackBar('Image loaded successfully!');
+        } else {
+          _showSnackBar('Failed to load image data');
+        }
       }
     } catch (e) {
       _showSnackBar('Error loading image: $e');
