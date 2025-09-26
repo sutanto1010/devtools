@@ -132,20 +132,71 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
     );
   }
 
-  Future<void> _saveImage([Uint8List? imageData]) async {
-    final dataToSave = imageData ?? _imageData;
-    if (dataToSave == null) return;
+    Future<void> _saveImage([Uint8List? imageData]) async {
+    final editorState = _imageEditorKey.currentState;
+    var dataToSave = (await editorState?.captureEditorImage()) ?? _imageData;
 
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'edited_screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
-      final file = File('${directory.path}/$fileName');
-      
-      await file.writeAsBytes(dataToSave);
-      _showSnackBar('Image saved to: ${file.path}');
+      // First, let user pick a directory
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: 'Choose folder to save screenshot',
+      );
+
+      if (selectedDirectory != null) {
+        // Show dialog to get filename from user
+        String? fileName = await _showFileNameDialog();
+        
+        if (fileName != null && fileName.isNotEmpty) {
+          // Ensure .png extension
+          if (!fileName.toLowerCase().endsWith('.png')) {
+            fileName += '.png';
+          }
+          
+          final file = File('$selectedDirectory/$fileName');
+          await file.writeAsBytes(dataToSave!);
+          _showSnackBar('Image saved to: ${file.path}');
+        } else {
+          _showSnackBar('Save cancelled - no filename provided');
+        }
+      } else {
+        _showSnackBar('Save cancelled - no folder selected');
+      }
     } catch (e) {
       _showSnackBar('Error saving image: $e');
     }
+  }
+
+  Future<String?> _showFileNameDialog() async {
+    final TextEditingController controller = TextEditingController(
+      text: 'screenshot_${DateTime.now().millisecondsSinceEpoch}.png',
+    );
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Save Screenshot'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'File name',
+              hintText: 'Enter filename (with or without .png)',
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _copyToClipboard([Uint8List? imageData]) async {
