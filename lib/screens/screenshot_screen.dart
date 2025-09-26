@@ -18,6 +18,7 @@ class ScreenshotScreen extends StatefulWidget {
 class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Uint8List? _imageData;
   bool _isCapturing = false;
+  final GlobalKey<ProImageEditorState> _imageEditorKey = GlobalKey<ProImageEditorState>();
 
   @override
   void dispose() {
@@ -148,15 +149,15 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   }
 
   Future<void> _copyToClipboard([Uint8List? imageData]) async {
-    final dataToCopy = imageData ?? _imageData;
-    if (dataToCopy == null) return;
-
+    final editorState = _imageEditorKey.currentState;
+    _imageData = (await editorState?.captureEditorImage());
+  
     try {
       // Use super_clipboard to copy binary image data
       final clipboard = SystemClipboard.instance;
       if (clipboard != null) {
         final item = DataWriterItem();
-        item.add(Formats.png(dataToCopy));
+        item.add(Formats.png(_imageData!));
         await clipboard.write([item]);
         _showSnackBar('Image copied to clipboard!');
       } else {
@@ -273,6 +274,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: ProImageEditor.memory(
                           _imageData!,
+                          key: _imageEditorKey,
                           configs: ProImageEditorConfigs(
                             designMode: ImageEditorDesignMode.material,
                             theme: ThemeData.light(),
