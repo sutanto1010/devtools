@@ -36,7 +36,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
         setState(() {
           _imageData = imageData;
         });
-        _openImageEditor();
       }
     } catch (e) {
       _showSnackBar('Error loading image: $e');
@@ -74,9 +73,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
           
           // Clean up temporary file
           await file.delete();
-          
-          // Open the image editor
-          _openImageEditor();
         }
       } else {
         _showSnackBar('Screenshot capture was cancelled or failed');
@@ -102,37 +98,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
     await _takeScreenshot(mode: CaptureMode.region);
   }
 
-  void _openImageEditor() {
-    if (_imageData == null) return;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProImageEditor.memory(
-          _imageData!,
-          configs: ProImageEditorConfigs(
-            designMode: ImageEditorDesignMode.material,
-            theme: ThemeData.light(),
-            heroTag: "screenshot_editor",
-          ),
-          callbacks: ProImageEditorCallbacks(
-            onImageEditingComplete: (Uint8List bytes) async {
-              // Update the image data with edited version
-              setState(() {
-                _imageData = bytes;
-              });
-              
-              // Show options for what to do with the edited image
-              _showEditCompleteDialog(bytes);
-            },
-            onImageEditingStarted: () {
-              // Optional: Show loading or perform setup
-            },
-          ),
-        ),
-      ),
-    );
-  }
 
   void _showEditCompleteDialog(Uint8List editedImageData) {
     showDialog(
@@ -230,11 +195,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
               icon: const Icon(Icons.save),
               tooltip: 'Save image',
             ),
-            IconButton(
-              onPressed: _openImageEditor,
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit image',
-            ),
           ],
         ],
       ),
@@ -302,19 +262,6 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                     ),
                   ],
                 ),
-                if (_imageData != null) ...[
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _openImageEditor,
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Edit Image'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -324,33 +271,41 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                 ? Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [ 
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
+                    child: ProImageEditor.memory(
+                          _imageData!,
+                          configs: ProImageEditorConfigs(
+                            designMode: ImageEditorDesignMode.material,
+                            theme: ThemeData.light(),
+                            heroTag: "screenshot_editor",
+                            mainEditor: MainEditorConfigs(
+                              enableZoom: true,
+                              enableCloseButton: false
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.memory(
-                                _imageData!,
-                                fit: BoxFit.contain,
-                              ),
+                            paintEditor: PaintEditorConfigs(
+                              enabled: true,
+                              enableModeBlur: true,
+                              initialPaintMode: PaintMode.freeStyle,
+                              enableModeFreeStyle: true,
+                            ),
+                            blurEditor: BlurEditorConfigs(
+                            
                             ),
                           ),
+                          callbacks: ProImageEditorCallbacks(
+                            onImageEditingComplete: (Uint8List bytes) async {
+                              // Update the image data with edited version
+                              setState(() {
+                                _imageData = bytes;
+                              });
+                              
+                              // Show options for what to do with the edited image
+                              _showEditCompleteDialog(bytes);
+                            },
+                            onImageEditingStarted: () {
+                              // Optional: Show loading or perform setup
+                            },
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Click "Edit Image" to add annotations, text, shapes, filters, and more!',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
                   )
                 : Center(
                     child: Column(
