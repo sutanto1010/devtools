@@ -36,7 +36,20 @@ class _Base64ScreenState extends State<Base64Screen> {
         result = base64.encode(bytes);
       } else {
         // Decode from Base64
-        final bytes = base64.decode(input);
+        // Clean and validate the input
+        String cleanInput = input.replaceAll(RegExp(r'\s'), ''); // Remove whitespace
+        
+        // Check if the string contains only valid Base64 characters
+        if (!RegExp(r'^[A-Za-z0-9+/]*={0,2}$').hasMatch(cleanInput)) {
+          throw const FormatException('Invalid Base64 characters detected');
+        }
+        
+        // Add proper padding if missing
+        while (cleanInput.length % 4 != 0) {
+          cleanInput += '=';
+        }
+        
+        final bytes = base64.decode(cleanInput);
         result = utf8.decode(bytes);
       }
       

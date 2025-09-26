@@ -520,6 +520,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.3"
+  pro_image_editor:
+    dependency: "direct main"
+    description:
+      name: pro_image_editor
+      sha256: "6c1ac42b3d069c797ff1895d104544882f96d2a69582bec406a6f79c42b6c5c1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.5.8"
   process_run:
     dependency: transitive
     description:
