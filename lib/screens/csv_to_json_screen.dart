@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
+
 class CsvToJsonScreen extends StatefulWidget {
   const CsvToJsonScreen({super.key});
 
@@ -134,6 +136,37 @@ class _CsvToJsonScreenState extends State<CsvToJsonScreen> {
     });
   }
 
+  void _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null) {
+        setState(() {
+          _inputController.text = clipboardData!.text!;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pasted from clipboard!')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to paste: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _copyToClipboard() async {
+    try {
+      await Clipboard.setData(ClipboardData(text: _outputController.text));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Copied to clipboard!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to copy: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,15 +220,44 @@ class _CsvToJsonScreenState extends State<CsvToJsonScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _inputController,
-                maxLines: null,
-                expands: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Paste your CSV data here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _inputController,
+                    maxLines: null,
+                    expands: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Paste your CSV data here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Tooltip(
+                        message: 'Paste CSV data from clipboard',
+                        child: IconButton(
+                          onPressed: _pasteFromClipboard,
+                          icon: const Icon(Icons.paste),
+                          iconSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -235,16 +297,45 @@ class _CsvToJsonScreenState extends State<CsvToJsonScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _outputController,
-                maxLines: null,
-                expands: true,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Converted JSON will appear here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _outputController,
+                    maxLines: null,
+                    expands: true,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Converted JSON will appear here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Tooltip(
+                        message: 'Copy JSON output to clipboard',
+                        child: IconButton(
+                          onPressed: _outputController.text.isNotEmpty ? _copyToClipboard : null,
+                          icon: const Icon(Icons.copy),
+                          iconSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
