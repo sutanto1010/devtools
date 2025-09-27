@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
 import 'dart:convert';
 
@@ -213,6 +214,101 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
     });
   }
 
+  void _copyToClipboard(String text, String type) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$type copied to clipboard'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData?.text != null) {
+      setState(() {
+        _inputController.text = clipboardData!.text!;
+      });
+    }
+  }
+
+  Widget _buildTextFieldWithOverlay({
+    required TextEditingController controller,
+    required String hintText,
+    required bool isInput,
+  }) {
+    return Stack(
+      children: [
+        TextField(
+          controller: controller,
+          maxLines: null,
+          expands: true,
+          readOnly: !isInput,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            hintText: hintText,
+          ),
+          textAlignVertical: TextAlignVertical.top,
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isInput)
+                Tooltip(
+                  message: 'Paste from clipboard',
+                  child: Material(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(4),
+                      onTap: _pasteFromClipboard,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.paste,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (isInput) const SizedBox(width: 4),
+              Tooltip(
+                message: isInput ? 'Copy input' : 'Copy output',
+                child: Material(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => _copyToClipboard(
+                      controller.text,
+                      isInput ? 'Input' : 'Output',
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.copy,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,17 +344,12 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
+              child: _buildTextFieldWithOverlay(
                 controller: _inputController,
-                maxLines: null,
-                expands: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isYamlToJson 
-                      ? 'Paste your YAML data here...' 
-                      : 'Paste your JSON data here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+                hintText: _isYamlToJson 
+                    ? 'Paste your YAML data here...' 
+                    : 'Paste your JSON data here...',
+                isInput: true,
               ),
             ),
             const SizedBox(height: 16),
@@ -309,18 +400,12 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
+              child: _buildTextFieldWithOverlay(
                 controller: _outputController,
-                maxLines: null,
-                expands: true,
-                readOnly: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isYamlToJson 
-                      ? 'Converted JSON will appear here...' 
-                      : 'Converted YAML will appear here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+                hintText: _isYamlToJson 
+                    ? 'Converted JSON will appear here...' 
+                    : 'Converted YAML will appear here...',
+                isInput: false,
               ),
             ),
           ],
