@@ -25,6 +25,25 @@ class _StringInspectorScreenState extends State<StringInspectorScreen> {
     );
   }
 
+  void _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
+        _inputController.text = clipboardData.text!;
+        setState(() {
+          _inputText = clipboardData.text!;
+        });
+      }
+    } catch (e) {
+      // Handle clipboard access errors gracefully
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to access clipboard')),
+        );
+      }
+    }
+  }
+
   Map<String, dynamic> _analyzeString(String text) {
     if (text.isEmpty) {
       return {
@@ -129,20 +148,72 @@ class _StringInspectorScreenState extends State<StringInspectorScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _inputController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: const InputDecoration(
-                  hintText: 'Enter or paste text to analyze...',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _inputText = value;
-                  });
-                },
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _inputController,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter or paste text to analyze...',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _inputText = value;
+                      });
+                    },
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.content_paste, size: 18),
+                            onPressed: _pasteFromClipboard,
+                            tooltip: 'Paste from clipboard',
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.copy, size: 18),
+                            onPressed: _inputText.isNotEmpty ? () => _copyToClipboard(_inputText) : null,
+                            tooltip: 'Copy text',
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
