@@ -98,6 +98,36 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     }
   }
 
+  void _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
+        setState(() {
+          _inputController.text = clipboardData.text!;
+          _errorMessage = '';
+        });
+        
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('JSON pasted from clipboard!'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Clipboard is empty';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to paste from clipboard';
+      });
+    }
+  }
+
   void _clearAll() {
     setState(() {
       _inputController.clear();
@@ -251,6 +281,12 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                ElevatedButton.icon(
+                  onPressed: _pasteFromClipboard,
+                  icon: const Icon(Icons.paste),
+                  label: const Text('Paste'),
+                ),
+                const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _formatJson,
                   icon: const Icon(Icons.format_align_left),

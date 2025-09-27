@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 import 'dart:convert';
 
@@ -210,6 +211,22 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
     return buffer.toString();
   }
 
+  void _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null) {
+        setState(() {
+          _inputController.text = clipboardData!.text!;
+          _errorMessage = '';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error accessing clipboard: ${e.toString()}';
+      });
+    }
+  }
+
   void _clearAll() {
     setState(() {
       _inputController.clear();
@@ -299,6 +316,11 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
                   onPressed: _isXmlToJson ? _convertXmlToJson : _convertJsonToXml,
                   icon: const Icon(Icons.transform),
                   label: Text(_isXmlToJson ? 'Convert to JSON' : 'Convert to XML'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _pasteFromClipboard,
+                  icon: const Icon(Icons.paste),
+                  label: const Text('Paste'),
                 ),
                 ElevatedButton.icon(
                   onPressed: _swapConversion,

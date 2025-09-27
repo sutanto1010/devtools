@@ -110,6 +110,29 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
     });
   }
 
+  void _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
+        setState(() {
+          _inputController.text = clipboardData.text!;
+          _errorMessage = '';
+          _successMessage = 'Text pasted from clipboard';
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Clipboard is empty or contains no text';
+          _successMessage = '';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to paste from clipboard: ${e.toString()}';
+        _successMessage = '';
+      });
+    }
+  }
+
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       Clipboard.setData(ClipboardData(text: _outputController.text));
@@ -142,7 +165,13 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
       
       final tag = match.group(0)!;
       
-      if (tag.startsWith('</')) {
+      if (tag.startsWith('<?') && tag.endsWith('?>')) {
+        // Processing instruction (like <?xml version="1.0"?>)
+        buffer.writeln('${indent * indentLevel}$tag');
+      } else if (tag.startsWith('<!--') && tag.endsWith('-->')) {
+        // Comment
+        buffer.writeln('${indent * indentLevel}$tag');
+      } else if (tag.startsWith('</')) {
         // Closing tag
         indentLevel--;
         buffer.writeln('${indent * indentLevel}$tag');
@@ -210,7 +239,13 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
     for (final match in tagRegex.allMatches(xml)) {
       final tag = match.group(1)!;
       
-      if (tag.startsWith('/')) {
+      if (tag.startsWith('?') && tag.endsWith('?')) {
+        // Processing instruction (like ?xml version="1.0"?)
+        continue; // Skip processing instructions in validation
+      } else if (tag.startsWith('!--') && tag.endsWith('--')) {
+        // Comment
+        continue; // Skip comments in validation
+      } else if (tag.startsWith('/')) {
         // Closing tag
         final tagName = tag.substring(1).split(' ')[0];
         if (stack.isEmpty) {
@@ -307,6 +342,11 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
               runSpacing: 8,
               alignment: WrapAlignment.spaceEvenly,
               children: [
+                ElevatedButton.icon(
+                  onPressed: _pasteFromClipboard,
+                  icon: const Icon(Icons.content_paste),
+                  label: const Text('Paste'),
+                ),
                 ElevatedButton.icon(
                   onPressed: _formatXml,
                   icon: const Icon(Icons.format_align_left),
