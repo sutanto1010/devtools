@@ -197,6 +197,24 @@ class _ImageBase64ScreenState extends State<ImageBase64Screen> {
     }
   }
 
+  Future<void> _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
+        setState(() {
+          _base64Controller.text = clipboardData.text!;
+          _errorMessage = '';
+          _successMessage = 'Data pasted from clipboard!';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error pasting from clipboard: ${e.toString()}';
+        _successMessage = '';
+      });
+    }
+  }
+
   void _clearAll() {
     setState(() {
       _base64Controller.clear();
@@ -402,26 +420,52 @@ class _ImageBase64ScreenState extends State<ImageBase64Screen> {
                       'Base64 Output',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    if (_base64Controller.text.isNotEmpty)
-                      IconButton(
-                        onPressed: _copyToClipboard,
-                        icon: const Icon(Icons.copy),
-                        tooltip: 'Copy to Clipboard',
-                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: TextField(
-                    controller: _base64Controller,
-                    maxLines: null,
-                    expands: true,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Base64 output will appear here...',
-                    ),
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                  child: Stack(
+                    children: [
+                      TextField(
+                        controller: _base64Controller,
+                        maxLines: null,
+                        expands: true,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Base64 output will appear here...',
+                        ),
+                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      ),
+                      if (_base64Controller.text.isNotEmpty)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              onPressed: _copyToClipboard,
+                              icon: const Icon(Icons.copy, size: 16),
+                              tooltip: 'Copy to Clipboard',
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              padding: const EdgeInsets.all(4),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -449,15 +493,62 @@ class _ImageBase64ScreenState extends State<ImageBase64Screen> {
                 ),
                 const SizedBox(height: 12),
                 Expanded(
-                  child: TextField(
-                    controller: _base64Controller,
-                    maxLines: null,
-                    expands: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Paste Base64 data here (with or without data URL prefix)...',
-                    ),
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                  child: Stack(
+                    children: [
+                      TextField(
+                        controller: _base64Controller,
+                        maxLines: null,
+                        expands: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Paste Base64 data here (with or without data URL prefix)...',
+                        ),
+                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: _pasteFromClipboard,
+                                icon: const Icon(Icons.paste, size: 16),
+                                tooltip: 'Paste from Clipboard',
+                                constraints: const BoxConstraints(
+                                  minWidth: 32,
+                                  minHeight: 32,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                              ),
+                              if (_base64Controller.text.isNotEmpty)
+                                IconButton(
+                                  onPressed: _copyToClipboard,
+                                  icon: const Icon(Icons.copy, size: 16),
+                                  tooltip: 'Copy to Clipboard',
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
