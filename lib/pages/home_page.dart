@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import '../database_helper.dart';
 import '../system_tray_manager.dart';
@@ -16,7 +18,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin, ClipboardListener {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -27,6 +29,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _recentlyUsedTools = [];
   List<TabData> _openTabs = [];
 
+   @override
+  void onClipboardChanged() async {
+    ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    print(newClipboardData?.text ?? "");
+  }
   @override
   void initState() {
     super.initState();
@@ -49,6 +56,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       await windowManager.setAlwaysOnTop(true);
       await windowManager.setAlwaysOnTop(false); // Remove always on top after focusing
     };
+    clipboardWatcher.addListener(this);
+    // start watch
+    clipboardWatcher.start();
   }
 
   void _handleTabChange() {
@@ -79,6 +89,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _searchController.dispose();
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
+    clipboardWatcher.removeListener(this);
+    // stop watch
+    clipboardWatcher.stop();
     super.dispose();
   }
 

@@ -57,6 +57,7 @@ dependencies:
   webview_flutter: ^4.4.2
   pro_image_editor: ^11.5.8
   path_provider: ^2.1.5
+  clipboard_watcher: ^0.3.0
 
 dev_dependencies:
   flutter_test:
