@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:convert';
 
 class Base64Screen extends StatefulWidget {
@@ -82,6 +83,143 @@ class _Base64ScreenState extends State<Base64Screen> {
     });
   }
 
+  Future<void> _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null) {
+        setState(() {
+          _inputController.text = clipboardData!.text!;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Text pasted from clipboard'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to paste from clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _copyToClipboard(String text) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: text));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Text copied to clipboard'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to copy to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildTextFieldWithOverlay({
+    required TextEditingController controller,
+    required String hintText,
+    required bool showPaste,
+    required bool showCopy,
+    bool readOnly = false,
+  }) {
+    return Stack(
+      children: [
+        TextField(
+          controller: controller,
+          maxLines: null,
+          expands: true,
+          readOnly: readOnly,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            hintText: hintText,
+          ),
+          textAlignVertical: TextAlignVertical.top,
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showPaste)
+                Tooltip(
+                  message: 'Paste from clipboard',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _pasteFromClipboard,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.content_paste,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (showPaste && showCopy) const SizedBox(width: 4),
+              if (showCopy)
+                Tooltip(
+                  message: 'Copy to clipboard',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _copyToClipboard(controller.text),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.content_copy,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,17 +251,13 @@ class _Base64ScreenState extends State<Base64Screen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
+              child: _buildTextFieldWithOverlay(
                 controller: _inputController,
-                maxLines: null,
-                expands: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isEncoding 
-                      ? 'Enter plain text to encode...'
-                      : 'Enter Base64 string to decode...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+                hintText: _isEncoding 
+                    ? 'Enter plain text to encode...'
+                    : 'Enter Base64 string to decode...',
+                showPaste: true,
+                showCopy: true,
               ),
             ),
             const SizedBox(height: 16),
@@ -168,18 +302,14 @@ class _Base64ScreenState extends State<Base64Screen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
+              child: _buildTextFieldWithOverlay(
                 controller: _outputController,
-                maxLines: null,
-                expands: true,
+                hintText: _isEncoding 
+                    ? 'Base64 encoded text will appear here...'
+                    : 'Decoded plain text will appear here...',
+                showPaste: false,
+                showCopy: true,
                 readOnly: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isEncoding 
-                      ? 'Base64 encoded text will appear here...'
-                      : 'Decoded plain text will appear here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
               ),
             ),
           ],
