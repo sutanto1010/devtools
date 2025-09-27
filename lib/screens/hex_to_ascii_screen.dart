@@ -130,6 +130,33 @@ class _HexToAsciiScreenState extends State<HexToAsciiScreen> {
     }
   }
 
+  void _copyInputToClipboard() {
+    if (_inputController.text.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: _inputController.text));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Input copied to clipboard!')),
+      );
+    }
+  }
+
+  void _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData?.text != null) {
+      setState(() {
+        _inputController.text = clipboardData!.text!;
+      });
+    }
+  }
+
+  void _pasteToOutput() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData?.text != null) {
+      setState(() {
+        _outputController.text = clipboardData!.text!;
+      });
+    }
+  }
+
   Widget _buildHexInfo() {
     if (!_isHexToAscii || _inputController.text.trim().isEmpty) {
       return const SizedBox.shrink();
@@ -295,20 +322,76 @@ class _HexToAsciiScreenState extends State<HexToAsciiScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _inputController,
-                maxLines: null,
-                expands: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isHexToAscii 
-                      ? 'Enter hex string (e.g., 48656C6C6F or 48 65 6C 6C 6F)...'
-                      : 'Enter ASCII text to convert to hex...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
-                onChanged: (value) {
-                  setState(() {}); // Trigger rebuild for info panels
-                },
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _inputController,
+                    maxLines: null,
+                    expands: true,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      hintText: _isHexToAscii 
+                          ? 'Enter hex string (e.g., 48656C6C6F or 48 65 6C 6C 6F)...'
+                          : 'Enter ASCII text to convert to hex...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                    onChanged: (value) {
+                      setState(() {}); // Trigger rebuild for info panels
+                    },
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Tooltip(
+                          message: 'Paste from clipboard',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: _pasteFromClipboard,
+                              icon: const Icon(Icons.paste, size: 18),
+                              iconSize: 18,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message: 'Copy input to clipboard',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: _copyInputToClipboard,
+                              icon: const Icon(Icons.copy, size: 18),
+                              iconSize: 18,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             
@@ -368,18 +451,52 @@ class _HexToAsciiScreenState extends State<HexToAsciiScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _outputController,
-                maxLines: null,
-                expands: true,
-                readOnly: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isHexToAscii 
-                      ? 'ASCII text will appear here...'
-                      : 'Hex string will appear here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _outputController,
+                    maxLines: null,
+                    expands: true,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      hintText: _isHexToAscii 
+                          ? 'ASCII text will appear here...'
+                          : 'Hex string will appear here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Tooltip(
+                          message: 'Copy output to clipboard',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: _copyToClipboard,
+                              icon: const Icon(Icons.copy, size: 18),
+                              iconSize: 18,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
