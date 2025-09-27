@@ -283,15 +283,79 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _inputController,
-                maxLines: null,
-                expands: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Paste your XML here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _inputController,
+                    maxLines: null,
+                    expands: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Paste your XML here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Tooltip(
+                          message: 'Paste from clipboard',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: _pasteFromClipboard,
+                              icon: const Icon(Icons.content_paste, size: 18),
+                              iconSize: 18,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              padding: const EdgeInsets.all(4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message: 'Clear input',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _inputController.clear();
+                                  _errorMessage = '';
+                                  _successMessage = '';
+                                });
+                              },
+                              icon: const Icon(Icons.clear, size: 18),
+                              iconSize: 18,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              padding: const EdgeInsets.all(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -342,11 +406,6 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
               runSpacing: 8,
               alignment: WrapAlignment.spaceEvenly,
               children: [
-                ElevatedButton.icon(
-                  onPressed: _pasteFromClipboard,
-                  icon: const Icon(Icons.content_paste),
-                  label: const Text('Paste'),
-                ),
                 ElevatedButton.icon(
                   onPressed: _formatXml,
                   icon: const Icon(Icons.format_align_left),
@@ -425,16 +484,46 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _outputController,
-                maxLines: null,
-                expands: true,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Formatted XML will appear here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _outputController,
+                    maxLines: null,
+                    expands: true,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Formatted XML will appear here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Tooltip(
+                      message: 'Copy to clipboard',
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                          ),
+                        ),
+                        child: IconButton(
+                          onPressed: _copyOutput,
+                          icon: const Icon(Icons.content_copy, size: 18),
+                          iconSize: 18,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          padding: const EdgeInsets.all(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
