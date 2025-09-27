@@ -49,7 +49,6 @@ dependencies:
   # Screenshot and image editing dependencies
   screenshot: ^3.0.0
   image: ^4.1.7
-  path_provider: ^2.1.2
   file_picker: ^10.3.3
   yaml: ^3.1.2
   screen_capturer: ^0.2.3
@@ -57,6 +56,7 @@ dependencies:
   syntax_highlight: ^0.5.0
   webview_flutter: ^4.4.2
   pro_image_editor: ^11.5.8
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

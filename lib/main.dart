@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';  // Add this import
 import 'pages/home_page.dart';
+import 'package:network_tools/network_tools.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,8 @@ void main() async {
     await windowManager.show();
     await windowManager.focus();
   });
-  
+  final appDocDirectory = await getApplicationDocumentsDirectory();
+  await configureNetworkTools(appDocDirectory.path, enableDebugging: true);
   runApp(const MyApp());
 }
 
