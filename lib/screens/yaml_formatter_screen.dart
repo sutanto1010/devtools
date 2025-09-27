@@ -301,7 +301,7 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _errorMessage.contains('valid') 
+                  color: _errorMessage == 'YAML is valid!' 
                       ? Colors.green.shade100 
                       : Colors.red.shade100,
                   borderRadius: BorderRadius.circular(4),
@@ -309,7 +309,7 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
                 child: Text(
                   _errorMessage,
                   style: TextStyle(
-                    color: _errorMessage.contains('valid') 
+                    color: _errorMessage == 'YAML is valid!' 
                         ? Colors.green 
                         : Colors.red,
                   ),
