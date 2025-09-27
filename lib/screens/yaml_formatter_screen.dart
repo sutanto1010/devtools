@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:yaml/yaml.dart';
 
 class YamlFormatterScreen extends StatefulWidget {
   const YamlFormatterScreen({super.key});
@@ -28,43 +29,104 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
         return;
       }
 
-      // Basic YAML formatting (indentation normalization)
-      final lines = input.split('\n');
-      final formattedLines = <String>[];
-      int indentLevel = 0;
+      // Parse YAML using the yaml package
+      final yamlDoc = loadYaml(input);
       
-      for (String line in lines) {
-        final trimmedLine = line.trim();
-        if (trimmedLine.isEmpty) {
-          formattedLines.add('');
-          continue;
-        }
-        
-        // Decrease indent for closing brackets/braces
-        if (trimmedLine.startsWith(']') || trimmedLine.startsWith('}')) {
-          indentLevel = (indentLevel - 1).clamp(0, double.infinity).toInt();
-        }
-        
-        // Add proper indentation
-        final indent = '  ' * indentLevel;
-        formattedLines.add('$indent$trimmedLine');
-        
-        // Increase indent for opening brackets/braces or list items
-        if (trimmedLine.endsWith(':') || 
-            trimmedLine.endsWith('[') || 
-            trimmedLine.endsWith('{') ||
-            trimmedLine.startsWith('-')) {
-          indentLevel++;
-        }
-      }
+      // Convert back to formatted YAML string
+      final formattedYaml = _yamlToString(yamlDoc, 0);
       
       setState(() {
-        _outputController.text = formattedLines.join('\n');
+        _outputController.text = formattedYaml;
       });
     } catch (e) {
       setState(() {
         _errorMessage = 'Error formatting YAML: ${e.toString()}';
       });
+    }
+  }
+
+  String _yamlToString(dynamic value, int indent) {
+    final indentStr = '  ' * indent;
+    
+    if (value == null) {
+      return 'null';
+    } else if (value is Map) {
+      if (value.isEmpty) return '{}';
+      
+      final buffer = StringBuffer();
+      final entries = value.entries.toList();
+      
+      for (int i = 0; i < entries.length; i++) {
+        final entry = entries[i];
+        final key = entry.key.toString();
+        final val = entry.value;
+        
+        if (i > 0) buffer.write('\n');
+        
+        if (val is Map && val.isNotEmpty) {
+          buffer.write('$indentStr$key:\n');
+          buffer.write(_yamlToString(val, indent + 1));
+        } else if (val is List && val.isNotEmpty) {
+          buffer.write('$indentStr$key:\n');
+          buffer.write(_yamlToString(val, indent + 1));
+        } else {
+          buffer.write('$indentStr$key: ${_yamlToString(val, 0)}');
+        }
+      }
+      
+      return buffer.toString();
+    } else if (value is List) {
+      if (value.isEmpty) return '[]';
+      
+      final buffer = StringBuffer();
+      
+      for (int i = 0; i < value.length; i++) {
+        final item = value[i];
+        
+        if (i > 0) buffer.write('\n');
+        
+        if (item is Map && item.isNotEmpty) {
+          buffer.write('$indentStr- ');
+          final itemStr = _yamlToString(item, indent + 1);
+          // Remove the first indent from the first line since we already added "- "
+          final lines = itemStr.split('\n');
+          buffer.write(lines.first.substring(2));
+          if (lines.length > 1) {
+            buffer.write('\n');
+            buffer.write(lines.skip(1).join('\n'));
+          }
+        } else if (item is List && item.isNotEmpty) {
+          buffer.write('$indentStr- \n');
+          buffer.write(_yamlToString(item, indent + 1));
+        } else {
+          buffer.write('$indentStr- ${_yamlToString(item, 0)}');
+        }
+      }
+      
+      return buffer.toString();
+    } else if (value is String) {
+      // Handle special string cases
+      if (value.contains('\n') || value.contains('"') || value.contains("'")) {
+        // Use literal block scalar for multiline strings
+        if (value.contains('\n')) {
+          return '|\n${value.split('\n').map((line) => '  $line').join('\n')}';
+        }
+        // Quote strings that contain quotes or special characters
+        return '"${value.replaceAll('"', '\\"')}"';
+      }
+      // Check if string needs quoting (starts with special chars, looks like number, etc.)
+      if (value.isEmpty || 
+          RegExp(r'^[\d\-\+\.]').hasMatch(value) ||
+          ['true', 'false', 'null', 'yes', 'no', 'on', 'off'].contains(value.toLowerCase()) ||
+          value.contains(':') ||
+          value.contains('#') ||
+          value.startsWith(' ') ||
+          value.endsWith(' ')) {
+        return '"$value"';
+      }
+      return value;
+    } else {
+      return value.toString();
     }
   }
 
@@ -81,24 +143,17 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
       return;
     }
 
-    // Basic YAML validation
-    final lines = input.split('\n');
-    for (int i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      if (line.trim().isEmpty) continue;
-      
-      // Check for basic YAML syntax issues
-      if (line.contains('\t')) {
-        setState(() {
-          _errorMessage = 'Line ${i + 1}: YAML should use spaces, not tabs';
-        });
-        return;
-      }
+    try {
+      // Use the yaml package to validate
+      loadYaml(input);
+      setState(() {
+        _errorMessage = 'YAML is valid!';
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'YAML validation error: ${e.toString()}';
+      });
     }
-
-    setState(() {
-      _errorMessage = 'YAML appears to be valid!';
-    });
   }
 
   void _clearAll() {
