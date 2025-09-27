@@ -109,6 +109,29 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
     );
   }
 
+  void _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData?.text != null) {
+      setState(() {
+        _inputController.text = clipboardData!.text!;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pasted from clipboard')),
+      );
+    }
+  }
+
+  void _copyInputText() {
+    final text = _inputController.text;
+    if (text.isNotEmpty) {
+      _copyToClipboard(text);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No text to copy')),
+      );
+    }
+  }
+
   void _copyPath() {
     final path = _currentPath.join('.');
     _copyToClipboard(path.isEmpty ? 'root' : path);
@@ -309,14 +332,65 @@ class _JsonExplorerScreenState extends State<JsonExplorerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
-                  controller: _inputController,
-                  decoration: const InputDecoration(
-                    labelText: 'Paste JSON data here',
-                    border: OutlineInputBorder(),
-                    hintText: '{"key": "value", "array": [1, 2, 3]}',
-                  ),
-                  maxLines: 4,
+                Stack(
+                  children: [
+                    TextField(
+                      controller: _inputController,
+                      decoration: const InputDecoration(
+                        labelText: 'Paste JSON data here',
+                        border: OutlineInputBorder(),
+                        hintText: '{"key": "value", "array": [1, 2, 3]}',
+                      ),
+                      maxLines: 4,
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.paste, size: 18),
+                                  onPressed: _pasteFromClipboard,
+                                  tooltip: 'Paste from clipboard',
+                                  padding: const EdgeInsets.all(4),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.copy, size: 18),
+                                  onPressed: _copyInputText,
+                                  tooltip: 'Copy input text',
+                                  padding: const EdgeInsets.all(4),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Row(
