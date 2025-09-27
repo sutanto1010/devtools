@@ -15,7 +15,7 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
   final TextEditingController _outputController = TextEditingController();
   String _errorMessage = '';
   bool _isXmlToJson = true;
-  bool _includeAttributes = true;
+  bool _includeAttributes = false;
   bool _preserveWhitespace = false;
 
   void _convertXmlToJson() {
@@ -227,6 +227,58 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
     }
   }
 
+  void _copyInputToClipboard() async {
+    try {
+      await Clipboard.setData(ClipboardData(text: _inputController.text));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Input copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error copying to clipboard: ${e.toString()}';
+      });
+    }
+  }
+
+  void _copyOutputToClipboard() async {
+    try {
+      await Clipboard.setData(ClipboardData(text: _outputController.text));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Output copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error copying to clipboard: ${e.toString()}';
+      });
+    }
+  }
+
+  void _pasteToInput() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null) {
+        setState(() {
+          _inputController.text = clipboardData!.text!;
+          _errorMessage = '';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error accessing clipboard: ${e.toString()}';
+      });
+    }
+  }
+
   void _clearAll() {
     setState(() {
       _inputController.clear();
@@ -293,17 +345,73 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _inputController,
-                maxLines: null,
-                expands: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isXmlToJson 
-                      ? 'Paste your XML data here...' 
-                      : 'Paste your JSON data here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _inputController,
+                    maxLines: null,
+                    expands: true,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      hintText: _isXmlToJson 
+                          ? 'Paste your XML data here...' 
+                          : 'Paste your JSON data here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Tooltip(
+                          message: 'Paste from clipboard',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: _pasteToInput,
+                              icon: const Icon(Icons.paste, size: 16),
+                              iconSize: 16,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message: 'Copy to clipboard',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: _copyInputToClipboard,
+                              icon: const Icon(Icons.copy, size: 16),
+                              iconSize: 16,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -316,11 +424,6 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
                   onPressed: _isXmlToJson ? _convertXmlToJson : _convertJsonToXml,
                   icon: const Icon(Icons.transform),
                   label: Text(_isXmlToJson ? 'Convert to JSON' : 'Convert to XML'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _pasteFromClipboard,
-                  icon: const Icon(Icons.paste),
-                  label: const Text('Paste'),
                 ),
                 ElevatedButton.icon(
                   onPressed: _swapConversion,
@@ -359,18 +462,47 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: TextField(
-                controller: _outputController,
-                maxLines: null,
-                expands: true,
-                readOnly: true,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: _isXmlToJson 
-                      ? 'Converted JSON will appear here...' 
-                      : 'Converted XML will appear here...',
-                ),
-                textAlignVertical: TextAlignVertical.top,
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _outputController,
+                    maxLines: null,
+                    expands: true,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      hintText: _isXmlToJson 
+                          ? 'Converted JSON will appear here...' 
+                          : 'Converted XML will appear here...',
+                    ),
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Tooltip(
+                      message: 'Copy to clipboard',
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                          ),
+                        ),
+                        child: IconButton(
+                          onPressed: _copyOutputToClipboard,
+                          icon: const Icon(Icons.copy, size: 16),
+                          iconSize: 16,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
