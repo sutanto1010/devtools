@@ -34,6 +34,7 @@ import '../screens/html_viewer_screen.dart';
 import '../screens/json_to_go_screen.dart';
 import '../screens/redis_client_screen.dart';
 import '../screens/websocket_tester_screen.dart';
+import '../screens/kafka_client_screen.dart';
 
 class ToolsConfig {
   static final List<Map<String, dynamic>> allTools = [
@@ -148,6 +149,13 @@ class ToolsConfig {
       'title': 'Redis Client',
       'description': 'Connect to Redis servers, browse keys, execute commands, and manage data with multiple connection support',
       'screen': const RedisClientScreen(),
+    },
+    {
+      'id': 'kafka_client',
+      'icon': Icons.stream,
+      'title': 'Kafka Client',
+      'description': 'Connect to Kafka brokers, manage topics, produce and consume messages with real-time monitoring',
+      'screen': const KafkaClientScreen(),
     },
     {
       'id': 'unit_converter',
@@ -318,6 +326,8 @@ class ToolsConfig {
         return HostScannerScreen();
       case 'redis_client':
         return RedisClientScreen();
+      case 'kafka_client':
+        return KafkaClientScreen();
       case 'unit_converter':
         return UnitConverterScreen();
       case 'uuid_generator':
@@ -354,6 +364,8 @@ class ToolsConfig {
         return HtmlViewerScreen();
       case 'websocket_tester':
         return WebSocketTesterScreen();
+      case 'kafka_client':
+        return KafkaClientScreen();
       default:
         final tool = allTools.firstWhere((tool) => tool['id'] == toolId);
         return tool['screen'];
