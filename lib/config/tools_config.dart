@@ -283,13 +283,13 @@ class ToolsConfig {
       'description': 'View and render HTML content with JavaScript and CSS support',
       'screen': const HtmlViewerScreen(),
     },
-    {
-      'id': 'websocket_tester',
-      'icon': Icons.swap_horizontal_circle,
-      'title': 'WebSocket Tester',
-      'description': 'Test WebSocket connections with real-time messaging, auto-reconnect, and message history',
-      'screen': const WebSocketTesterScreen(),
-    },
+    // {
+    //   'id': 'websocket_tester',
+    //   'icon': Icons.swap_horizontal_circle,
+    //   'title': 'WebSocket Tester',
+    //   'description': 'Test WebSocket connections with real-time messaging, auto-reconnect, and message history',
+    //   'screen': const WebSocketTesterScreen(),
+    // },
   ];
 
   static Widget createScreen(String toolId) {
