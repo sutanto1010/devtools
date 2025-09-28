@@ -173,7 +173,8 @@ class _RedisClientScreenState extends State<RedisClientScreen>
           
           final type = await _redisCommand!.send_object(['TYPE', keyString]);
           final ttl = await _redisCommand!.send_object(['TTL', keyString]);
-          
+          final valueType = type.toString();
+          if (valueType == 'hash') continue;
           keyInfos.add(RedisKeyInfo(
             key: keyString,
             type: type.toString(),
@@ -282,6 +283,8 @@ class _RedisClientScreenState extends State<RedisClientScreen>
         _selectedKeyTTL = ttl == -1 ? null : ttl;
       });
     } catch (e) {
+        final conn = RedisConnection();
+      _redisCommand = await conn.connect(_activeConnection!.host, _activeConnection!.port);
       _showErrorSnackBar('Failed to load key value: ${e.toString()}');
     } finally {
       setState(() {
