@@ -10,6 +10,7 @@ import '../config/tools_config.dart';
 import '../widgets/keep_alive_wrapper.dart';
 import '../widgets/welcome_screen.dart';
 import '../widgets/app_drawer.dart';
+import '../utils/text_type_detector.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,7 +33,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
    @override
   void onClipboardChanged() async {
     ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-    print(newClipboardData?.text ?? "");
+    String clipboardText = newClipboardData?.text ?? "";
+    
+    if (clipboardText.isNotEmpty) {
+      String detectedType = TextTypeDetector.detectTextType(clipboardText);
+      String typeDescription = TextTypeDetector.getTypeDescription(detectedType);
+      
+      print("Clipboard content detected as: $typeDescription ($detectedType)");
+      
+      // Optional: Show a notification or suggest relevant tools
+      if (detectedType != 'unknown') {
+        _suggestRelevantTool(detectedType, clipboardText);
+      }
+    }
+  }
+
+  void _suggestRelevantTool(String detectedType, String content) {
+    String? suggestedTool = TextTypeDetector.getRelevantToolId(detectedType);
+    
+    if (suggestedTool != null) {
+      String typeDescription = TextTypeDetector.getTypeDescription(detectedType);
+      print("Suggested tool: $suggestedTool for $typeDescription");
+      // Here you could show a notification or automatically open the relevant tool
+      // _showToolSuggestion(suggestedTool, detectedType);
+    }
   }
   @override
   void initState() {
