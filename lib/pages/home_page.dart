@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   }
 
   void _handleTabChange() {
-    // If the plus button tab is selected, open drawer and switch back to previous tab
+    // // If the plus button tab is selected, open drawer and switch back to previous tab
     // if (_tabController.index == _openTabs.length) {
     //   // Switch back to the last actual tab
     //   if (_openTabs.isNotEmpty) {
@@ -226,11 +226,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       final currentIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this);
-      _tabController.addListener(_handleTabChange);
       
       // Adjust current tab index if necessary
       if (currentIndex > _openTabs.length) {
-        _tabController.index = _openTabs.length - 1;
+        final temp = currentIndex - 1;
+        _tabController.index = temp > 0 ? temp : 0;
       } else if (currentIndex > index) {
         _tabController.index = currentIndex - 1;
       } else {
@@ -239,10 +239,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     }
   }
 
-  Future<void> _clearHistory() async {
-    await _dbHelper.clearHistory();
-    await _loadRecentlyUsedTools();
-  }
 
   Future<void> _navigateToHistoryItem(Map<String, dynamic> historyItem) async {
     // Find the corresponding tool from ToolsConfig.allTools
@@ -253,21 +249,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     
     if (tool.isNotEmpty) {
       _openToolInTab(tool, historyItem['toolParam']);
-    }
-  }
-
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'Just now';
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:tray_manager/tray_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 import 'database_helper.dart';
 import 'dart:io' show Platform;
 
@@ -136,7 +137,7 @@ class SystemTrayManager with TrayListener {
     }
   }
 
-  void _handleToolSelection(String toolId) {
+  Future<void> _handleToolSelection(String toolId) async {
     if (onToolSelected != null) {
       onToolSelected!(toolId);
     }

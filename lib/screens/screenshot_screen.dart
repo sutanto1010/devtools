@@ -34,6 +34,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
     // Schedule the post-render callback
     WidgetsBinding.instance.addPostFrameCallback( (_) async{
       await _onUIRendered();
+      // print('ScreenshotScreen initState');
     });
   }
 
@@ -41,7 +42,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Future<void> _onUIRendered() async {
     if(widget.toolParam != null){
       await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
-      HomePage.showAndFocusWindow();
+      await HomePage.showAndFocusWindow();
     }
   }
 
