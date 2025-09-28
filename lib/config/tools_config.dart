@@ -32,6 +32,7 @@ import '../screens/string_replace_screen.dart';
 import '../screens/image_base64_screen.dart';
 import '../screens/html_viewer_screen.dart';
 import '../screens/json_to_go_screen.dart';
+import '../screens/redis_client_screen.dart';
 
 class ToolsConfig {
   static final List<Map<String, dynamic>> allTools = [
@@ -139,6 +140,13 @@ class ToolsConfig {
       'title': 'Host Scanner',
       'description': 'Scan network for active hosts and open ports using network discovery',
       'screen': const HostScannerScreen(),
+    },
+    {
+      'id': 'redis_client',
+      'icon': Icons.storage,
+      'title': 'Redis Client',
+      'description': 'Connect to Redis servers, browse keys, execute commands, and manage data with multiple connection support',
+      'screen': const RedisClientScreen(),
     },
     {
       'id': 'unit_converter',
@@ -300,6 +308,8 @@ class ToolsConfig {
         return DnsScannerScreen();
       case 'host_scanner':
         return HostScannerScreen();
+      case 'redis_client':
+        return RedisClientScreen();
       case 'unit_converter':
         return UnitConverterScreen();
       case 'uuid_generator':
