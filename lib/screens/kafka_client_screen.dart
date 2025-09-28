@@ -229,7 +229,7 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
       final port = brokerParts.length > 1 ? int.parse(brokerParts[1]) : 9092;
       
       _socket = await Socket.connect(host, port);
-      
+      _selectedBroker = '$host:$port';
       setState(() {
         _isConnected = true;
         _isConnecting = false;

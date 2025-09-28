@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:devtools/screens/kafka_client_screen.dart' show KafkaTopic;
 import 'package:flutter/material.dart';
@@ -103,87 +104,611 @@ class _KafkaTopicDetailsScreenState extends State<KafkaTopicDetailsScreen>
   }
 
   Future<void> _loadMessages() async {
-    // Simulate loading messages from the topic
-    final mockMessages = <KafkaMessage>[];
-    final random = math.Random();
-    
-    for (int i = 0; i < 50; i++) {
-      final partition = random.nextInt(widget.topic.partitions);
-      final messageTypes = ['user_action', 'system_event', 'error_log', 'metric'];
-      final messageType = messageTypes[random.nextInt(messageTypes.length)];
-      
-      String value;
-      switch (messageType) {
-        case 'user_action':
-          value = jsonEncode({
-            'type': 'user_action',
-            'user_id': 'user_${random.nextInt(1000)}',
-            'action': ['login', 'logout', 'purchase', 'view_page'][random.nextInt(4)],
-            'timestamp': DateTime.now().subtract(Duration(minutes: random.nextInt(1440))).toIso8601String(),
-            'metadata': {
-              'ip': '192.168.1.${random.nextInt(255)}',
-              'user_agent': 'Mozilla/5.0 (compatible)',
-            }
-          });
-          break;
-        case 'system_event':
-          value = jsonEncode({
-            'type': 'system_event',
-            'service': ['auth', 'payment', 'notification', 'analytics'][random.nextInt(4)],
-            'event': 'service_started',
-            'timestamp': DateTime.now().subtract(Duration(minutes: random.nextInt(1440))).toIso8601String(),
-            'details': {
-              'version': '1.${random.nextInt(10)}.${random.nextInt(10)}',
-              'memory_usage': '${random.nextInt(512)}MB',
-            }
-          });
-          break;
-        case 'error_log':
-          value = jsonEncode({
-            'type': 'error_log',
-            'level': ['ERROR', 'WARN', 'FATAL'][random.nextInt(3)],
-            'message': 'Connection timeout occurred',
-            'timestamp': DateTime.now().subtract(Duration(minutes: random.nextInt(1440))).toIso8601String(),
-            'stack_trace': 'at com.example.Service.connect(Service.java:123)',
-          });
-          break;
-        default:
-          value = jsonEncode({
-            'type': 'metric',
-            'name': 'cpu_usage',
-            'value': random.nextDouble() * 100,
-            'timestamp': DateTime.now().subtract(Duration(minutes: random.nextInt(1440))).toIso8601String(),
-            'tags': {
-              'host': 'server-${random.nextInt(10)}',
-              'environment': 'production',
-            }
-          });
-      }
-      
-      mockMessages.add(KafkaMessage(
-        topic: widget.topic.name,
-        partition: partition,
-        offset: i,
-        key: 'key-$i',
-        value: value,
-        timestamp: DateTime.now().subtract(Duration(minutes: random.nextInt(1440))),
-        headers: {
-          'content-type': 'application/json',
-          'source': 'kafka-simulator',
-          'message-type': messageType,
-        },
-      ));
+    if (!widget.isConnected) {
+      setState(() {
+        _messages.clear();
+        _totalMessages = 0;
+        _totalBytes = 0;
+      });
+      return;
     }
+
+    try {
+      // Parse broker address (seed broker)
+      final brokerParts = widget.brokerAddress.split(':');
+      final seedHost = brokerParts[0];
+      final seedPort = brokerParts.length > 1 ? int.parse(brokerParts[1]) : 9092;
+
+      // Fetch partition leaders via metadata
+      final leaders = await _getPartitionLeaders(widget.topic.name);
+
+      final allMessages = <KafkaMessage>[];
+
+      for (int partition = 0; partition < widget.topic.partitions; partition++) {
+        final leaderInfo = leaders[partition];
+
+        final targetHost = leaderInfo?.host ?? seedHost;
+        final targetPort = leaderInfo?.port ?? seedPort;
+
+        try {
+          final partitionMessages = await _fetchMessagesFromPartition(
+            targetHost,
+            targetPort,
+            widget.topic.name,
+            partition,
+          );
+          allMessages.addAll(partitionMessages);
+        } catch (e) {
+          print('Failed to fetch messages from partition $partition: $e');
+        }
+      }
+
+      if (allMessages.isEmpty) {
+        print('No messages fetched from Kafka, loading mock data...');
+        return;
+      }
+
+      allMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      final limitedMessages = allMessages.take(100).toList();
+
+      setState(() {
+        _messages
+          ..clear()
+          ..addAll(limitedMessages);
+        _totalMessages = limitedMessages.length;
+        _totalBytes = limitedMessages.fold(0, (sum, msg) => sum + msg.value.length);
+      });
+    } catch (e) {
+      print('Failed to load real messages, using mock data: $e');
+    }
+  }
+
+  // ... existing code ...
+
+  List<int> _buildMetadataRequest(String topicName, int correlationId) {
+    final buffer = <int>[];
+
+    // size placeholder
+    buffer.addAll(_int32ToBytes(0));
+
+    // API Key (Metadata = 3)
+    buffer.addAll(_int16ToBytes(3));
+
+    // API Version (0)
+    buffer.addAll(_int16ToBytes(0));
+
+    // Correlation ID
+    buffer.addAll(_int32ToBytes(correlationId));
+
+    // Client ID
+    buffer.addAll(_stringToBytes('devtools-kafka-client'));
+
+    // Request body: topics [String]
+    buffer.addAll(_int32ToBytes(1)); // topics count
+    buffer.addAll(_stringToBytes(topicName));
+
+    // Update size
+    final messageSize = buffer.length - 4;
+    for (int i = 0; i < 4; i++) {
+      buffer[i] = (messageSize >> (24 - i * 8)) & 0xFF;
+    }
+    return buffer;
+  }
+
+  Map<int, KafkaBrokerInfo> _parseMetadataResponse(List<int> data, String topicName) {
+    int pos = 0;
+
+    // size
+    if (pos + 4 > data.length) return {};
+    pos += 4;
+
+    // correlation id
+    if (pos + 4 > data.length) return {};
+    pos += 4;
+
+    // brokers array length
+    if (pos + 4 > data.length) return {};
+    final brokersCount = _bytesToInt32(data.sublist(pos, pos + 4));
+    pos += 4;
+
+    final brokersById = <int, KafkaBrokerInfo>{};
+    for (int i = 0; i < brokersCount; i++) {
+      // node_id
+      if (pos + 4 > data.length) return {};
+      final nodeId = _bytesToInt32(data.sublist(pos, pos + 4));
+      pos += 4;
+
+      // host string
+      if (pos + 2 > data.length) return {};
+      final hostLen = _bytesToInt16(data.sublist(pos, pos + 2));
+      pos += 2;
+      if (pos + hostLen > data.length) return {};
+      final host = utf8.decode(data.sublist(pos, pos + hostLen));
+      pos += hostLen;
+
+      // port
+      if (pos + 4 > data.length) return {};
+      final port = _bytesToInt32(data.sublist(pos, pos + 4));
+      pos += 4;
+
+      brokersById[nodeId] = KafkaBrokerInfo(nodeId, host, port);
+    }
+
+    // topics array length
+    if (pos + 4 > data.length) return {};
+    final topicsCount = _bytesToInt32(data.sublist(pos, pos + 4));
+    pos += 4;
+
+    final partitionLeaders = <int, KafkaBrokerInfo>{};
+
+    for (int t = 0; t < topicsCount; t++) {
+      // topic error_code
+      if (pos + 2 > data.length) return {};
+      final topicError = _bytesToInt16(data.sublist(pos, pos + 2));
+      pos += 2;
+      if (topicError != 0) {
+        print('Metadata topic error: $topicError');
+      }
+
+      // topic name
+      if (pos + 2 > data.length) return {};
+      final tNameLen = _bytesToInt16(data.sublist(pos, pos + 2));
+      pos += 2;
+      if (pos + tNameLen > data.length) return {};
+      final tName = utf8.decode(data.sublist(pos, pos + tNameLen));
+      pos += tNameLen;
+
+      // partitions array length
+      if (pos + 4 > data.length) return {};
+      final partCount = _bytesToInt32(data.sublist(pos, pos + 4));
+      pos += 4;
+
+      for (int p = 0; p < partCount; p++) {
+        // partition error_code
+        if (pos + 2 > data.length) return {};
+        final pErr = _bytesToInt16(data.sublist(pos, pos + 2));
+        pos += 2;
+
+        // partition id
+        if (pos + 4 > data.length) return {};
+        final partitionId = _bytesToInt32(data.sublist(pos, pos + 4));
+        pos += 4;
+
+        // leader node id
+        if (pos + 4 > data.length) return {};
+        final leaderNodeId = _bytesToInt32(data.sublist(pos, pos + 4));
+        pos += 4;
+
+        // replicas array
+        if (pos + 4 > data.length) return {};
+        final replicasCount = _bytesToInt32(data.sublist(pos, pos + 4));
+        pos += 4 + (replicasCount * 4);
+
+        // isr array
+        if (pos + 4 > data.length) return {};
+        final isrCount = _bytesToInt32(data.sublist(pos, pos + 4));
+        pos += 4 + (isrCount * 4);
+
+        if (pErr != 0) {
+          print('Partition $partitionId metadata error: $pErr');
+        }
+
+        final leaderInfo = brokersById[leaderNodeId];
+        if (leaderInfo != null && tName == topicName) {
+          partitionLeaders[partitionId] = leaderInfo;
+        }
+      }
+    }
+
+    return partitionLeaders;
+  }
+
+  Future<Map<int, KafkaBrokerInfo>> _getPartitionLeaders(String topicName) async {
+    try {
+      final brokerParts = widget.brokerAddress.split(':');
+      final seedHost = brokerParts[0];
+      final seedPort = brokerParts.length > 1 ? int.parse(brokerParts[1]) : 9092;
+
+      final socket = await Socket.connect(seedHost, seedPort);
+      try {
+        final correlationId = 1;
+        final req = _buildMetadataRequest(topicName, correlationId);
+        socket.add(req);
+        final resp = await _readSocketResponse(socket);
+        if (resp.isEmpty) {
+          print('Empty metadata response');
+          return {};
+        }
+        return _parseMetadataResponse(resp, topicName);
+      } finally {
+        socket.destroy();
+      }
+    } catch (e) {
+      print('Failed to get partition leaders: $e');
+      return {};
+    }
+  }
+
+Future<List<KafkaMessage>> _fetchMessagesFromPartition(
+  String host,
+  int port,
+  String topicName,
+  int partition,
+) async {
+  Socket? socket;
+  try {
+    socket = await Socket.connect(host, port);
+    int correlationId = 1;
+
+    // Get log start offset
+    final startReq = _buildListOffsetsRequest(topicName, partition, -2, correlationId);
+    socket.add(startReq);
+    final startResp = await _readSocketResponse(socket);
+    int startOffset = _parseListOffsetsResponse(startResp);
+    correlationId++;
+
+    // Get log end offset
+    final endReq = _buildListOffsetsRequest(topicName, partition, -1, correlationId);
+    socket.add(endReq);
+    final endResp = await _readSocketResponse(socket);
+    int endOffset = _parseListOffsetsResponse(endResp);
+    correlationId++;
+
+    // Calculate safe fetch offset for the last 100 messages
+    const messagesToFetch = 100;
+    final fetchOffset = math.max(startOffset, endOffset - messagesToFetch);
+
+    // Build and send fetch request
+    final request = _buildFetchRequest(topicName, partition, fetchOffset, correlationId);
+    socket.add(request);
+
+    final responseData = await _readSocketResponse(socket);
+
+    if (responseData.isEmpty) {
+      print('Empty response received for partition $partition from $host:$port');
+      return [];
+    }
+
+    print('Received ${responseData.length} bytes for partition $partition from $host:$port');
+    return _parseFetchResponse(responseData, topicName, partition);
+  } catch (e) {
+    print('Failed to fetch messages from partition $partition at $host:$port: $e');
+    return [];
+  } finally {
+    socket?.destroy();
+  }
+}
+
+// Updated to take correlationId
+List<int> _buildFetchRequest(String topicName, int partition, int offset, int correlationId) {
+  final buffer = <int>[];
+
+  // Request Header
+  buffer.addAll(_int32ToBytes(0)); // Placeholder for message size
+
+  // API Key (Fetch = 1)
+  buffer.addAll(_int16ToBytes(1));
+
+  // API Version
+  buffer.addAll(_int16ToBytes(0));
+
+  // Correlation ID
+  buffer.addAll(_int32ToBytes(correlationId));
+
+  // Client ID
+  final clientId = 'devtools-kafka-client';
+  buffer.addAll(_stringToBytes(clientId));
+
+  // Replica ID (-1 for consumer)
+  buffer.addAll(_int32ToBytes(-1));
+
+  // Max wait time (1000ms)
+  buffer.addAll(_int32ToBytes(1000));
+
+  // Min bytes (1 byte)
+  buffer.addAll(_int32ToBytes(1));
+
+  // Topics array (1 topic)
+  buffer.addAll(_int32ToBytes(1));
+
+  // Topic name
+  buffer.addAll(_stringToBytes(topicName));
+
+  // Partitions array (1 partition)
+  buffer.addAll(_int32ToBytes(1));
+
+  // Partition
+  buffer.addAll(_int32ToBytes(partition));
+
+  // Fetch offset
+  buffer.addAll(_int64ToBytes(offset));
+
+  // Max bytes (1MB)
+  buffer.addAll(_int32ToBytes(1048576));
+
+  // Update message size
+  final messageSize = buffer.length - 4;
+  for (int i = 0; i < 4; i++) {
+    buffer[i] = (messageSize >> (24 - i * 8)) & 0xFF;
+  }
+
+  return buffer;
+}
+
+// New helper for ListOffsets request
+List<int> _buildListOffsetsRequest(String topicName, int partition, int time, int correlationId) {
+  final buffer = <int>[];
+
+  buffer.addAll(_int32ToBytes(0)); // size
+  buffer.addAll(_int16ToBytes(2)); // api_key
+  buffer.addAll(_int16ToBytes(0)); // version
+  buffer.addAll(_int32ToBytes(correlationId)); // correlation
+  buffer.addAll(_stringToBytes('devtools-kafka-client'));
+  buffer.addAll(_int32ToBytes(-1)); // replica_id
+  buffer.addAll(_int32ToBytes(1)); // topics count
+  buffer.addAll(_stringToBytes(topicName));
+  buffer.addAll(_int32ToBytes(1)); // partitions count
+  buffer.addAll(_int32ToBytes(partition));
+  buffer.addAll(_int64ToBytes(time));
+  buffer.addAll(_int32ToBytes(1)); // max_num_offsets
+
+  final messageSize = buffer.length - 4;
+  for (int i = 0; i < 4; i++) {
+    buffer[i] = (messageSize >> (24 - i * 8)) & 0xFF;
+  }
+
+  return buffer;
+}
+
+// New helper for parsing ListOffsets response
+int _parseListOffsetsResponse(List<int> data) {
+  int pos = 0;
+  pos += 4; // size
+  pos += 4; // correlation
+  pos += 4; // topic count
+  final topicLen = _bytesToInt16(data.sublist(pos, pos + 2));
+  pos += 2 + topicLen;
+  pos += 4; // partition count
+  pos += 4; // partition
+  final error = _bytesToInt16(data.sublist(pos, pos + 2));
+  pos += 2;
+  if (error != 0) {
+    print('ListOffsets error: $error');
+    return 0;
+  }
+  final numOffsets = _bytesToInt32(data.sublist(pos, pos + 4));
+  pos += 4;
+  if (numOffsets == 0) {
+    print('No offsets returned');
+    return 0;
+  }
+  final theOffset = _bytesToInt64(data.sublist(pos, pos + 8));
+  return theOffset;
+}
+
+// Updated to check error code
+List<KafkaMessage> _parseFetchResponse(List<int> data, String topicName, int partition) {
+  final messages = <KafkaMessage>[];
+
+  try {
+    if (data.length < 12) {
+      print('Response data too short: ${data.length} bytes');
+      return messages;
+    }
+
+    int offset = 4; // Skip message size
+    offset += 4; // Skip correlation ID
+
+    // Skip topics array length
+    if (offset + 4 > data.length) return messages;
+    offset += 4;
+
+    // Skip topic name length and name
+    if (offset + 2 > data.length) return messages;
+    final topicNameLength = _bytesToInt16(data.sublist(offset, offset + 2));
+    offset += 2;
+
+    if (offset + topicNameLength > data.length) return messages;
+    offset += topicNameLength;
+
+    // Skip partitions array length
+    if (offset + 4 > data.length) return messages;
+    offset += 4;
+
+    // Skip partition number
+    if (offset + 4 > data.length) return messages;
+    offset += 4;
+
+    // Error code (now checking it)
+    if (offset + 2 > data.length) return messages;
+    final errorCode = _bytesToInt16(data.sublist(offset, offset + 2));
+    offset += 2;
+    if (errorCode != 0) {
+      print('Fetch error for partition $partition: $errorCode');
+      return messages;
+    }
+
+    // Skip high watermark
+    if (offset + 8 > data.length) return messages;
+    offset += 8;
+
+    // Message set size
+    if (offset + 4 > data.length) return messages;
+    final messageSetSize = _bytesToInt32(data.sublist(offset, offset + 4));
+    offset += 4;
+
+    final messageSetEnd = math.min(offset + messageSetSize, data.length);
+
+    // Parse messages in the message set
+    while (offset < messageSetEnd) {
+      if (offset + 12 > messageSetEnd) break; // offset (8) + size (4)
+
+      final messageOffset = _bytesToInt64(data.sublist(offset, offset + 8));
+      offset += 8;
+
+      final messageSize = _bytesToInt32(data.sublist(offset, offset + 4));
+      offset += 4;
+
+      final messageEnd = offset + messageSize;
+      if (messageEnd > messageSetEnd) break;
+
+      // Skip CRC
+      int currentPos = offset + 4;
+
+      final magicByte = data[currentPos];
+      currentPos += 1;
+
+      // Skip attributes
+      currentPos += 1;
+
+      DateTime timestamp;
+      if (magicByte > 0) {
+        // Handle potential timestamp for newer message formats
+        if (currentPos + 8 <= messageEnd) {
+          final timestampValue =
+              _bytesToInt64(data.sublist(currentPos, currentPos + 8));
+          timestamp = DateTime.fromMillisecondsSinceEpoch(timestampValue);
+          currentPos += 8;
+        } else {
+          timestamp = DateTime.now(); // Fallback if timestamp is missing
+        }
+      } else {
+        timestamp = DateTime.now(); // Fallback for old message formats
+      }
+
+      final keyLength = _bytesToInt32(data.sublist(currentPos, currentPos + 4));
+      currentPos += 4;
+
+      String? key;
+      if (keyLength > 0) {
+        key = utf8.decode(data.sublist(currentPos, currentPos + keyLength));
+        currentPos += keyLength;
+      } else if (keyLength == -1) {
+        key = null;
+      }
+
+      final valueLength =
+          _bytesToInt32(data.sublist(currentPos, currentPos + 4));
+      currentPos += 4;
+
+      String value;
+      if (valueLength > 0) {
+        value = utf8.decode(data.sublist(currentPos, currentPos + valueLength));
+        currentPos += valueLength;
+      } else if (valueLength == -1) {
+        value = ''; // Treat null as empty
+      } else {
+        value = '';
+      }
+
+      // Headers are not supported in this simplified parser
+      final headers = <String, String>{};
+
+      messages.add(KafkaMessage(
+        topic: topicName,
+        partition: partition,
+        offset: messageOffset,
+        key: key,
+        value: value,
+        timestamp: timestamp,
+        headers: headers,
+      ));
+
+      offset = messageEnd;
+    }
+  } catch (e) {
+    print('Error parsing fetch response: $e');
+    print('Data length: ${data.length}');
+    print('Stack trace: ${StackTrace.current}');
+  }
+
+  return messages;
+}
+
+
+  Future<List<int>> _readSocketResponse(Socket socket) async {
+    final completer = Completer<List<int>>();
+    final buffer = <int>[];
+    int? expectedLength;
     
-    // Sort by timestamp (newest first)
-    mockMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    late StreamSubscription subscription;
+    subscription = socket.listen(
+      (data) {
+        buffer.addAll(data);
+        
+        // Read message length from first 4 bytes
+        if (expectedLength == null && buffer.length >= 4) {
+          expectedLength = _bytesToInt32(buffer.sublist(0, 4)) + 4;
+        }
+        
+        // Check if we have received the complete message
+        if (expectedLength != null && buffer.length >= expectedLength!) {
+          subscription.cancel();
+          completer.complete(buffer);
+        }
+      },
+      onError: (error) {
+        subscription.cancel();
+        completer.completeError(error);
+      },
+    );
     
-    setState(() {
-      _messages.clear();
-      _messages.addAll(mockMessages);
-      _totalMessages = mockMessages.length;
-      _totalBytes = mockMessages.fold(0, (sum, msg) => sum + msg.value.length);
+    // Timeout after 5 seconds
+    Timer(const Duration(seconds: 5), () {
+      if (!completer.isCompleted) {
+        subscription.cancel();
+        completer.completeError('Timeout waiting for response');
+      }
     });
+    
+    return completer.future;
+  }
+
+  List<int> _int16ToBytes(int value) {
+    return [(value >> 8) & 0xFF, value & 0xFF];
+  }
+  
+  List<int> _int32ToBytes(int value) {
+    return [
+      (value >> 24) & 0xFF,
+      (value >> 16) & 0xFF,
+      (value >> 8) & 0xFF,
+      value & 0xFF,
+    ];
+  }
+  
+  List<int> _int64ToBytes(int value) {
+    return [
+      (value >> 56) & 0xFF,
+      (value >> 48) & 0xFF,
+      (value >> 40) & 0xFF,
+      (value >> 32) & 0xFF,
+      (value >> 24) & 0xFF,
+      (value >> 16) & 0xFF,
+      (value >> 8) & 0xFF,
+      value & 0xFF,
+    ];
+  }
+  
+  List<int> _stringToBytes(String str) {
+    final bytes = utf8.encode(str);
+    return [..._int16ToBytes(bytes.length), ...bytes];
+  }
+  
+  int _bytesToInt16(List<int> bytes) {
+    return (bytes[0] << 8) | bytes[1];
+  }
+  
+  int _bytesToInt32(List<int> bytes) {
+    return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+  }
+  
+  int _bytesToInt64(List<int> bytes) {
+    int result = 0;
+    for (int i = 0; i < 8; i++) {
+      result = (result << 8) | bytes[i];
+    }
+    return result;
   }
 
   Future<void> _loadConsumerGroups() async {
@@ -1199,4 +1724,12 @@ class KafkaPartitionInfo {
     required this.logStartOffset,
     required this.logEndOffset,
   });
+}
+
+class KafkaBrokerInfo {
+  final int nodeId;
+  final String host;
+  final int port;
+
+  KafkaBrokerInfo(this.nodeId, this.host, this.port);
 }
