@@ -150,13 +150,13 @@ class ToolsConfig {
       'description': 'Connect to Redis servers, browse keys, execute commands, and manage data with multiple connection support',
       'screen': const RedisClientScreen(),
     },
-    {
-      'id': 'kafka_client',
-      'icon': Icons.stream,
-      'title': 'Kafka Client',
-      'description': 'Connect to Kafka brokers, manage topics, produce and consume messages with real-time monitoring',
-      'screen': const KafkaClientScreen(),
-    },
+    // {
+    //   'id': 'kafka_client',
+    //   'icon': Icons.stream,
+    //   'title': 'Kafka Client',
+    //   'description': 'Connect to Kafka brokers, manage topics, produce and consume messages with real-time monitoring',
+    //   'screen': const KafkaClientScreen(),
+    // },
     {
       'id': 'unit_converter',
       'icon': Icons.straighten,
@@ -283,13 +283,13 @@ class ToolsConfig {
       'description': 'View and render HTML content with JavaScript and CSS support',
       'screen': const HtmlViewerScreen(),
     },
-    // {
-    //   'id': 'websocket_tester',
-    //   'icon': Icons.swap_horizontal_circle,
-    //   'title': 'WebSocket Tester',
-    //   'description': 'Test WebSocket connections with real-time messaging, auto-reconnect, and message history',
-    //   'screen': const WebSocketTesterScreen(),
-    // },
+    {
+      'id': 'websocket_tester',
+      'icon': Icons.swap_horizontal_circle,
+      'title': 'WebSocket Tester',
+      'description': 'Test WebSocket connections with real-time messaging, auto-reconnect, and message history',
+      'screen': const WebSocketTesterScreen(),
+    },
   ];
 
   static Widget createScreen(String toolId) {
