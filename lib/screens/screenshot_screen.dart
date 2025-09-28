@@ -20,7 +20,28 @@ class ScreenshotScreen extends StatefulWidget {
 class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Uint8List? _imageData;
   bool _isCapturing = false;
+  final captureModes = <String, CaptureMode>{
+    'region': CaptureMode.region,
+    'window': CaptureMode.window,
+    'desktop': CaptureMode.screen,
+  };
   final GlobalKey<ProImageEditorState> _imageEditorKey = GlobalKey<ProImageEditorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Schedule the post-render callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onUIRendered();
+    });
+  }
+
+  // Method that gets called after UI is completely rendered
+  void _onUIRendered() {
+    if(widget.toolParam != null){
+      _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
+    }
+  }
 
   @override
   void dispose() {
