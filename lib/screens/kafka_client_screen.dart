@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syntax_highlight/syntax_highlight.dart';
+import 'kafka_topic_details_screen.dart';
 
 class KafkaClientScreen extends StatefulWidget {
   const KafkaClientScreen({super.key});
@@ -1482,6 +1483,18 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
                                     setState(() {
                                       _selectedTopic = topic.name;
                                     });
+                                    
+                                    // Navigate to topic details screen
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => KafkaTopicDetailsScreen(
+                                          brokerAddress: _selectedBroker,
+                                          topic: topic,
+                                          isConnected: _isConnected,
+                                        ),
+                                      ),
+                                    );
                                   },
                                 ),
                               );
