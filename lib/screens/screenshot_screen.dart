@@ -1,3 +1,4 @@
+import 'package:devtools/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:screen_capturer/screen_capturer.dart';
@@ -31,15 +32,16 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   void initState() {
     super.initState();
     // Schedule the post-render callback
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _onUIRendered();
+    WidgetsBinding.instance.addPostFrameCallback( (_) async{
+      await _onUIRendered();
     });
   }
 
   // Method that gets called after UI is completely rendered
-  void _onUIRendered() {
+  Future<void> _onUIRendered() async {
     if(widget.toolParam != null){
-      _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
+      await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
+      HomePage.showAndFocusWindow();
     }
   }
 

@@ -17,6 +17,15 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
+
+  /// Shows and focuses the main window with proper focus handling
+  static Future<void> showAndFocusWindow() async {
+    // Show and focus the main window
+    await windowManager.show();
+    await windowManager.focus();
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setAlwaysOnTop(false); // Remove always on top after focusing
+  }
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin, ClipboardListener {
@@ -75,10 +84,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     };
     _systemTrayManager.onShowApp = () async {
       // Show and focus the main window
-      await windowManager.show();
-      await windowManager.focus();
-      await windowManager.setAlwaysOnTop(true);
-      await windowManager.setAlwaysOnTop(false); // Remove always on top after focusing
+      await HomePage.showAndFocusWindow();
     };
     clipboardWatcher.addListener(this);
     // start watch

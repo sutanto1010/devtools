@@ -140,7 +140,7 @@ class SystemTrayManager with TrayListener {
     if (onToolSelected != null) {
       onToolSelected!(toolId);
     }
-    _showMainWindow();
+    // _showMainWindow();
   }
   
 
