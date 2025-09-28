@@ -870,15 +870,48 @@ class _RedisClientScreenState extends State<RedisClientScreen>
       displayValue = _selectedValue.toString();
     }
     
-    return TextField(
-      controller: TextEditingController(text: displayValue),
-      maxLines: null,
-      expands: true,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        alignLabelWithHint: true,
-      ),
-      readOnly: true,
+    return Stack(
+      children: [
+        TextField(
+          controller: TextEditingController(text: displayValue),
+          maxLines: null,
+          expands: true,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+          ),
+          readOnly: true,
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              ),
+            ),
+            child: IconButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: displayValue));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Value copied to clipboard')),
+                );
+              },
+              icon: const Icon(Icons.copy, size: 18),
+              iconSize: 18,
+              constraints: const BoxConstraints(
+                minWidth: 32,
+                minHeight: 32,
+              ),
+              padding: const EdgeInsets.all(4),
+              tooltip: 'Copy value',
+            ),
+          ),
+        ),
+      ],
     );
   }
 
