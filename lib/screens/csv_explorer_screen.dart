@@ -23,6 +23,10 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
   int _totalRows = 0;
   int _totalColumns = 0;
   String _fileName = '';
+  List<double> _columnWidths = [];
+  int? _resizingColumnIndex;
+  double? _resizeStartX;
+  double? _resizeStartWidth;
 
   @override
   void initState() {
@@ -37,6 +41,7 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
       _isDataLoaded = false;
       _totalRows = 0;
       _totalColumns = 0;
+      _columnWidths.clear(); // Clear column widths
     });
 
     try {
@@ -67,6 +72,9 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
           _csvData = allRows;
         }
       }
+
+      // Initialize column widths
+      _columnWidths = List.filled(_headers.length, 150.0);
 
       setState(() {
         _isDataLoaded = true;
@@ -230,9 +238,14 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
     }
 
     return TableView.builder(
-      columns: _headers.map((header) => TableColumn(
-        width: 150,
-      )).toList(),
+      columns: _headers.asMap().entries.map((entry) {
+        final index = entry.key;
+        return TableColumn(
+          width: _columnWidths[index],
+          minResizeWidth: 80.0,
+          maxResizeWidth: 400.0,
+        );
+      }).toList(),
       rowCount: _csvData.length,
       rowHeight: 48.0,
       rowBuilder: (context, row, contentBuilder) {
@@ -261,20 +274,214 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
         return contentBuilder(
           context,
           (context, column) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                _headers[column],
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            );
+            return _buildResizableHeader(column);
           },
         );
       },
     );
+  }
+
+  Widget _buildResizableHeader(int column) {
+    return Stack(
+      children: [
+        // Main header content
+        Container(
+          width: _columnWidths[column],
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            border: Border(
+              right: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+          ),
+          child: Text(
+            _headers[column],
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        // Resize handle
+        Positioned(
+          right: -4,
+          top: 0,
+          bottom: 0,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.resizeColumn,
+            child: GestureDetector(
+              onPanStart: (details) {
+                _resizingColumnIndex = column;
+                _resizeStartX = details.globalPosition.dx;
+                _resizeStartWidth = _columnWidths[column];
+              },
+              onPanUpdate: (details) {
+                if (_resizingColumnIndex == column && _resizeStartX != null && _resizeStartWidth != null) {
+                  final deltaX = details.globalPosition.dx - _resizeStartX!;
+                  final newWidth = (_resizeStartWidth! + deltaX).clamp(80.0, 400.0);
+                  
+                  setState(() {
+                    _columnWidths[column] = newWidth;
+                  });
+                }
+              },
+              onPanEnd: (details) {
+                _resizingColumnIndex = null;
+                _resizeStartX = null;
+                _resizeStartWidth = null;
+              },
+              child: Container(
+                width: 8,
+                decoration: BoxDecoration(
+                  color: _resizingColumnIndex == column 
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                    : Colors.transparent,
+                ),
+                child: Center(
+                  child: Container(
+                    width: 2,
+                    height: double.infinity,
+                    color: _resizingColumnIndex == column 
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showColumnControls(BuildContext context, Offset position) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        position.dx + 1,
+        position.dy + 1,
+      ),
+      items: [
+        PopupMenuItem(
+          child: const Text('Resize Columns'),
+          onTap: () {
+            _showResizeDialog(context);
+          },
+        ),
+        PopupMenuItem(
+          child: const Text('Auto-fit Columns'),
+          onTap: () {
+            _autoFitColumns();
+          },
+        ),
+        PopupMenuItem(
+          child: const Text('Reset Column Widths'),
+          onTap: () {
+            _resetColumnWidths();
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showColumnControlsForColumn(BuildContext context, int columnIndex) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Resize Column: ${_headers[columnIndex]}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Current width: ${_columnWidths[columnIndex].toInt()}px'),
+            const SizedBox(height: 16),
+            Slider(
+              value: _columnWidths[columnIndex],
+              min: 80.0,
+              max: 400.0,
+              divisions: 32,
+              label: '${_columnWidths[columnIndex].toInt()}px',
+              onChanged: (value) {
+                setState(() {
+                  _columnWidths[columnIndex] = value;
+                });
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResizeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Resize All Columns'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Set width for all columns:'),
+            const SizedBox(height: 16),
+            Slider(
+              value: _columnWidths.isNotEmpty ? _columnWidths[0] : 150.0,
+              min: 80.0,
+              max: 400.0,
+              divisions: 32,
+              label: '${(_columnWidths.isNotEmpty ? _columnWidths[0] : 150.0).toInt()}px',
+              onChanged: (value) {
+                setState(() {
+                  _columnWidths = List.filled(_columnWidths.length, value);
+                });
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _autoFitColumns() {
+    if (!_isDataLoaded || _csvData.isEmpty) return;
+
+    setState(() {
+      for (int i = 0; i < _headers.length; i++) {
+        double maxWidth = _headers[i].length * 8.0 + 32.0; // Header width
+        
+        // Check data rows for maximum content width
+        for (final row in _csvData) {
+          if (i < row.length) {
+            double contentWidth = row[i].length * 8.0 + 32.0;
+            maxWidth = maxWidth > contentWidth ? maxWidth : contentWidth;
+          }
+        }
+        
+        // Clamp between min and max resize widths
+        _columnWidths[i] = maxWidth.clamp(80.0, 400.0);
+      }
+    });
+  }
+
+  void _resetColumnWidths() {
+    setState(() {
+      _columnWidths = List.filled(_columnWidths.length, 150.0);
+    });
   }
 
   @override
