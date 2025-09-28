@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../screens/json_formatter_screen.dart';
 import '../screens/yaml_formatter_screen.dart';
 import '../screens/csv_to_json_screen.dart';
+import '../screens/csv_explorer_screen.dart';
 import '../screens/json_explorer_screen.dart';
 import '../screens/base64_screen.dart';
 import '../screens/hex_to_ascii_screen.dart';
@@ -61,6 +62,13 @@ class ToolsConfig {
       'title': 'CSV to JSON Converter',
       'description': 'Convert CSV data to JSON format',
       'screen': const CsvToJsonScreen(),
+    },
+    {
+      'id': 'csv_explorer',
+      'icon': Icons.table_view,
+      'title': 'CSV Explorer',
+      'description': 'Explore and analyze CSV data in a table view with export capabilities',
+      'screen': const CsvExplorerScreen(),
     },
     {
       'id': 'xml_to_json',
@@ -270,6 +278,8 @@ class ToolsConfig {
         return YamlFormatterScreen();
       case 'csv_to_json':
         return CsvToJsonScreen();
+      case 'csv_explorer':
+        return CsvExplorerScreen();
       case 'xml_to_json':
         return XmlToJsonScreen();
       case 'yaml_to_json':
