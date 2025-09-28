@@ -7,7 +7,7 @@ class AppDrawer extends StatelessWidget {
   final List<Map<String, dynamic>> filteredTools;
   final Function(String) onSearchChanged;
   final VoidCallback onClearSearch;
-  final Function(Map<String, dynamic>) onToolSelected;
+  final Function(Map<String, dynamic>, String?) onToolSelected;
 
   const AppDrawer({
     Key? key,
@@ -98,7 +98,7 @@ class AppDrawer extends StatelessWidget {
                         subtitle: Text(tool['description']),
                         onTap: () {
                           Navigator.pop(context);
-                          onToolSelected(tool);
+                          onToolSelected(tool,"");
                         },
                       );
                     },

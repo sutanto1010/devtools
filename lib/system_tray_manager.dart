@@ -64,31 +64,25 @@ class SystemTrayManager with TrayListener {
     print('Menu item clicked: ${menuItem.key}');
     
     if (menuItem.key == 'show_app') {
-      print('Show App clicked');
       _showMainWindow();
     } else if (menuItem.key == 'exit') {
-      print('Exit clicked');
       _exitApp();
     } else if (menuItem.key?.startsWith('tool_') == true) {
       final toolId = menuItem.key!.substring(5); // Remove 'tool_' prefix
-      print('Tool selected: $toolId');
       _handleToolSelection(toolId);
     }
   }
 
   Future<void> _updateTrayMenu() async {
     try {
-      print('Updating tray menu...');
       final recentTools = await _dbHelper.getRecentTools(limit: 5);
-      print('Recent tools count: ${recentTools.length}');
-      
       List<MenuItem> menuItems = [];
       
       if (recentTools.isNotEmpty) {
         // Add recent tools section
         menuItems.add(MenuItem(
           key: 'recent_tools_header',
-          label: 'Recent Tools',
+          label: 'Suggested Tools',
           disabled: true,
         ));
         menuItems.add(MenuItem.separator());
@@ -106,7 +100,7 @@ class SystemTrayManager with TrayListener {
         // No recent tools available
         menuItems.add(MenuItem(
           key: 'no_recent_tools',
-          label: 'No recent tools',
+          label: 'No suggested tools',
           disabled: true,
         ));
         menuItems.add(MenuItem.separator());
@@ -114,8 +108,21 @@ class SystemTrayManager with TrayListener {
       
       // Add common menu items
       menuItems.add(MenuItem(
+        key: 'tool_screenshot;region',
+        label: 'Screenshot - Region',
+      ));
+      menuItems.add(MenuItem(
+        key: 'tool_screenshot;window',
+        label: 'Screenshot - Window',
+      ));
+      menuItems.add(MenuItem(
+        key: 'tool_screenshot;desktop',
+        label: 'Screenshot - Desktop',
+      ));
+      menuItems.add(MenuItem.separator());
+      menuItems.add(MenuItem(
         key: 'show_app',
-        label: 'Show App',
+        label: 'Show Dev Tools',
       ));
       menuItems.add(MenuItem(
         key: 'exit',
@@ -124,7 +131,6 @@ class SystemTrayManager with TrayListener {
 
       Menu menu = Menu(items: menuItems);
       await trayManager.setContextMenu(menu);
-      print('Context menu set successfully');
     } catch (e) {
       print('Error updating tray menu: $e');
     }

@@ -98,13 +98,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   }
 
   void _handleSystemTrayToolSelection(String toolId) {
+    final temp = toolId.split(';');
     final tool = ToolsConfig.allTools.firstWhere(
-      (tool) => tool['id'] == toolId,
+      (tool) => tool['id'] == temp[0],
       orElse: () => {},
     );
-    
+    final toolParam = temp.length > 1 ? temp[1] : null;
     if (tool.isNotEmpty) {
-      _openToolInTab(tool);
+      _openToolInTab(tool, toolParam);
     }
   }
 
@@ -161,14 +162,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     }).toList();
   }
 
-  void _openToolInTab(Map<String, dynamic> tool, {Map<String, dynamic>? sessionData}) {
+  void _openToolInTab(Map<String, dynamic> tool, String? toolParam) {
     // Create new tab
     final newTab = TabData(
       id: tool['id'],
       title: tool['title'],
       icon: tool['icon'],
-      screen: ToolsConfig.createScreen(tool['id']),
-      sessionData: sessionData,
+      screen: ToolsConfig.createScreen(tool['id'], toolParam),
     );
     
     setState(() {
@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       _tabController.animateTo(_openTabs.length - 1);
     });
     
-    _addToRecentlyUsed(tool['id'], sessionData: sessionData);
+    _addToRecentlyUsed(tool['id']);
   }
 
   Future<void> _closeTab(int index) async {
@@ -246,7 +246,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     );
     
     if (tool.isNotEmpty) {
-      _openToolInTab(tool, sessionData: historyItem['sessionData']);
+      _openToolInTab(tool, historyItem['toolParam']);
     }
   }
 

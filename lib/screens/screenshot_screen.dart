@@ -9,7 +9,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 class ScreenshotScreen extends StatefulWidget {
-  const ScreenshotScreen({super.key});
+  const ScreenshotScreen({super.key, this.toolParam});
+
+  final String? toolParam;
 
   @override
   State<ScreenshotScreen> createState() => _ScreenshotScreenState();

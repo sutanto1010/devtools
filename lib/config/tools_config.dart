@@ -214,7 +214,7 @@ class ToolsConfig {
       'screen': const RegexTesterScreen(),
     },
     {
-      'id': 'screenshot_tool',
+      'id': 'screenshot',
       'icon': Icons.screenshot,
       'title': 'Screenshot Tool',
       'description': 'Take screenshots with text annotation, drawing shapes, and cropping features',
@@ -292,7 +292,7 @@ class ToolsConfig {
     },
   ];
 
-  static Widget createScreen(String toolId) {
+  static Widget createScreen(String toolId, String? toolParam) {
     switch (toolId) {
       case 'json_formatter':
         return JsonFormatterScreen();
@@ -344,8 +344,8 @@ class ToolsConfig {
         return HashScreen();
       case 'regex_tester':
         return RegexTesterScreen();
-      case 'screenshot_tool':
-        return ScreenshotScreen();
+      case 'screenshot':
+        return ScreenshotScreen(toolParam: toolParam);
       case 'basic_auth_generator':
         return BasicAuthScreen();
       case 'chmod_calculator':
