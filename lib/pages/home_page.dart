@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   
   String _searchQuery = '';
   List<Map<String, dynamic>> _recentlyUsedTools = [];
-  List<TabData> _openTabs = [];
+  final List<TabData> _openTabs = [];
 
    @override
   void onClipboardChanged() async {
@@ -152,10 +152,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
 
   List<Map<String, dynamic>> get _recentTools {
     return _recentlyUsedTools.take(5).toList();
-  }
-
-  List<Map<String, dynamic>> get _historyTools {
-    return _recentlyUsedTools;
   }
 
   List<Map<String, dynamic>> get _filteredTools {
@@ -326,7 +322,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
           ..._openTabs.map((tab) => 
             // Wrap each screen in AutomaticKeepAliveClientMixin to preserve state
             KeepAliveWrapper(child: tab.screen)
-          ).toList(),
+          ),
           // Welcome screen for the plus button tab or when no tabs are open
           WelcomeScreen(
             toolsCount: ToolsConfig.allTools.length,
