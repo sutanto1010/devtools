@@ -33,6 +33,7 @@ import '../screens/image_base64_screen.dart';
 import '../screens/html_viewer_screen.dart';
 import '../screens/json_to_go_screen.dart';
 import '../screens/redis_client_screen.dart';
+import '../screens/websocket_tester_screen.dart';
 
 class ToolsConfig {
   static final List<Map<String, dynamic>> allTools = [
@@ -274,6 +275,13 @@ class ToolsConfig {
       'description': 'View and render HTML content with JavaScript and CSS support',
       'screen': const HtmlViewerScreen(),
     },
+    {
+      'id': 'websocket_tester',
+      'icon': Icons.swap_horizontal_circle,
+      'title': 'WebSocket Tester',
+      'description': 'Test WebSocket connections with real-time messaging, auto-reconnect, and message history',
+      'screen': const WebSocketTesterScreen(),
+    },
   ];
 
   static Widget createScreen(String toolId) {
@@ -344,6 +352,8 @@ class ToolsConfig {
         return ImageBase64Screen();
       case 'html_viewer':
         return HtmlViewerScreen();
+      case 'websocket_tester':
+        return WebSocketTesterScreen();
       default:
         final tool = allTools.firstWhere((tool) => tool['id'] == toolId);
         return tool['screen'];
