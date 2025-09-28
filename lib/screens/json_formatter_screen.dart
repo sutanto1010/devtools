@@ -169,9 +169,11 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     bool readOnly = false,
     bool isInput = true,
   }) {
+    Widget textField;
+    
     if (!_isHighlighterReady || _jsonHighlighter == null || isInput) {
       // Fallback to regular TextField if highlighter is not ready
-      return TextField(
+      textField = TextField(
         controller: controller,
         maxLines: null,
         expands: true,
@@ -186,29 +188,103 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
           fontSize: 14,
         ),
       );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
-                ),
-                child: SingleChildScrollView(
-                  child: _buildHighlightedText(controller.text, ''),
+    } else {
+      textField = Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
+                  ),
+                  child: SingleChildScrollView(
+                    child: _buildHighlightedText(controller.text, hintText),
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
+          ],
+        ),
+      );
+    }
+
+    // Wrap in Stack to add overlay buttons
+    return Stack(
+      children: [
+        textField,
+        // Overlay buttons in top-right corner
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isInput) ...[
+                // Paste button for input field
+                Tooltip(
+                  message: 'Paste from clipboard',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: _pasteFromClipboard,
+                      icon: const Icon(Icons.paste, size: 16),
+                      iconSize: 16,
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(
+                        minWidth: 24,
+                        minHeight: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                // Copy button for output field
+                Tooltip(
+                  message: 'Copy to clipboard',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: _copyToClipboard,
+                      icon: const Icon(Icons.copy, size: 16),
+                      iconSize: 16,
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(
+                        minWidth: 24,
+                        minHeight: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -252,12 +328,12 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Left side - Input
+            // Top - Input
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -276,62 +352,49 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(height: 16),
             // Center - Buttons and Error
-            Column(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: _pasteFromClipboard,
-                  icon: const Icon(Icons.paste),
-                  label: const Text('Paste'),
-                ),
-                const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _formatJson,
                   icon: const Icon(Icons.format_align_left),
                   label: const Text('Format'),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _minifyJson,
                   icon: const Icon(Icons.compress),
                   label: const Text('Minify'),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
                   label: const Text('Clear'),
                 ),
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: _copyToClipboard,
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy'),
-                ),
-                if (_errorMessage.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    width: 200,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _errorMessage,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
               ],
             ),
-            const SizedBox(width: 16),
-            // Right side - Output
+            if (_errorMessage.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            // Bottom - Output
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
