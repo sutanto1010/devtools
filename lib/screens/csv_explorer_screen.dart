@@ -41,7 +41,7 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
       _isDataLoaded = false;
       _totalRows = 0;
       _totalColumns = 0;
-      _columnWidths.clear(); // Clear column widths
+      _columnWidths = []; // Clear column widths
     });
 
     try {
@@ -63,13 +63,38 @@ class _CsvExplorerScreenState extends State<CsvExplorerScreen> {
 
       List<List<String>> allRows = lines.map((line) => _parseCsvLine(line)).toList();
       
+      // Find the maximum number of columns across all rows
+      int maxColumns = 0;
+      for (final row in allRows) {
+        if (row.length > maxColumns) {
+          maxColumns = row.length;
+        }
+      }
+      
       if (_hasHeaders && allRows.isNotEmpty) {
-        _headers = allRows[0];
+        List<String> headerRow = allRows[0];
         _csvData = allRows.skip(1).toList();
+        
+        // If header has fewer columns than max, extend it
+        if (headerRow.length < maxColumns) {
+          _headers = List<String>.from(headerRow);
+          for (int i = headerRow.length; i < maxColumns; i++) {
+            _headers.add('Column ${i + 1}');
+          }
+        } else {
+          _headers = headerRow;
+        }
       } else {
         if (allRows.isNotEmpty) {
-          _headers = List.generate(allRows[0].length, (index) => 'Column ${index + 1}');
+          _headers = List.generate(maxColumns, (index) => 'Column ${index + 1}');
           _csvData = allRows;
+        }
+      }
+
+      // Normalize all data rows to have the same number of columns
+      for (int i = 0; i < _csvData.length; i++) {
+        while (_csvData[i].length < maxColumns) {
+          _csvData[i].add(''); // Add empty strings for missing columns
         }
       }
 
