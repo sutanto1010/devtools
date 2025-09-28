@@ -43,6 +43,9 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
   final TextEditingController _segmentMsController = TextEditingController();
   final TextEditingController _maxMessageBytesController = TextEditingController();
   
+  // Message search controllers
+  final TextEditingController _messageSearchController = TextEditingController();
+  
   // Data
   final List<KafkaMessage> _messages = [];
   final List<KafkaTopic> _topics = [];
@@ -66,6 +69,14 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
   KafkaTopic? _selectedTopicDetails;
   bool _showTopicDetails = false;
   String _cleanupPolicy = 'delete'; // delete, compact
+  
+  // Message search settings
+  String _messageSearchQuery = '';
+  String _searchFilter = 'all'; // all, value, key, topic, headers
+  bool _caseSensitiveSearch = false;
+  bool _useRegexSearch = false;
+  DateTime? _searchFromDate;
+  DateTime? _searchToDate;
   
   // Statistics
   int _messagesSent = 0;
@@ -115,6 +126,7 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
     _retentionMsController.dispose();
     _segmentMsController.dispose();
     _maxMessageBytesController.dispose();
+    _messageSearchController.dispose();
     super.dispose();
   }
 
@@ -752,6 +764,266 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
     return _topics.where((topic) => 
       topic.name.toLowerCase().contains(_topicSearchQuery.toLowerCase())
     ).toList();
+  }
+
+  // Message search functionality
+  List<KafkaMessage> get _filteredMessages {
+    if (_messageSearchQuery.isEmpty && _searchFromDate == null && _searchToDate == null) {
+      return _messages;
+    }
+    
+    return _messages.where((message) {
+      // Date range filter
+      if (_searchFromDate != null && message.timestamp.isBefore(_searchFromDate!)) {
+        return false;
+      }
+      if (_searchToDate != null && message.timestamp.isAfter(_searchToDate!.add(const Duration(days: 1)))) {
+        return false;
+      }
+      
+      // Text search filter
+      if (_messageSearchQuery.isEmpty) {
+        return true;
+      }
+      
+      String searchQuery = _caseSensitiveSearch ? _messageSearchQuery : _messageSearchQuery.toLowerCase();
+      
+      bool matchesSearch(String text) {
+        String searchText = _caseSensitiveSearch ? text : text.toLowerCase();
+        
+        if (_useRegexSearch) {
+          try {
+            return RegExp(searchQuery).hasMatch(searchText);
+          } catch (e) {
+            // If regex is invalid, fall back to contains
+            return searchText.contains(searchQuery);
+          }
+        } else {
+          return searchText.contains(searchQuery);
+        }
+      }
+      
+      switch (_searchFilter) {
+        case 'value':
+          return matchesSearch(message.value);
+        case 'key':
+          return message.key != null && matchesSearch(message.key!);
+        case 'topic':
+          return matchesSearch(message.topic);
+        case 'headers':
+          return message.headers.entries.any((entry) => 
+            matchesSearch(entry.key) || matchesSearch(entry.value));
+        case 'all':
+        default:
+          return matchesSearch(message.value) ||
+                 (message.key != null && matchesSearch(message.key!)) ||
+                 matchesSearch(message.topic) ||
+                 message.headers.entries.any((entry) => 
+                   matchesSearch(entry.key) || matchesSearch(entry.value));
+      }
+    }).toList();
+  }
+
+  void _clearMessageSearch() {
+    setState(() {
+      _messageSearchQuery = '';
+      _messageSearchController.clear();
+      _searchFromDate = null;
+      _searchToDate = null;
+    });
+  }
+
+  Future<void> _selectSearchDateRange() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      initialDateRange: _searchFromDate != null && _searchToDate != null
+          ? DateTimeRange(start: _searchFromDate!, end: _searchToDate!)
+          : null,
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _searchFromDate = picked.start;
+        _searchToDate = picked.end;
+      });
+    }
+  }
+
+  Widget _buildSearchControls() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.search, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Search Messages',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                if (_messageSearchQuery.isNotEmpty || _searchFromDate != null || _searchToDate != null)
+                  TextButton.icon(
+                    onPressed: _clearMessageSearch,
+                    icon: const Icon(Icons.clear, size: 16),
+                    label: const Text('Clear'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: _messageSearchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search messages...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: _messageSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _messageSearchController.clear();
+                                setState(() {
+                                  _messageSearchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _messageSearchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 1,
+                  child: DropdownButtonFormField<String>(
+                    value: _searchFilter,
+                    decoration: const InputDecoration(
+                      labelText: 'Search In',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'all', child: Text('All Fields')),
+                      DropdownMenuItem(value: 'value', child: Text('Message Value')),
+                      DropdownMenuItem(value: 'key', child: Text('Message Key')),
+                      DropdownMenuItem(value: 'topic', child: Text('Topic')),
+                      DropdownMenuItem(value: 'headers', child: Text('Headers')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _searchFilter = value ?? 'all';
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: _selectSearchDateRange,
+                  icon: const Icon(Icons.date_range),
+                  label: Text(_searchFromDate != null && _searchToDate != null
+                      ? 'Date Range'
+                      : 'Select Dates'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _caseSensitiveSearch,
+                      onChanged: (value) {
+                        setState(() {
+                          _caseSensitiveSearch = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text('Case Sensitive'),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _useRegexSearch,
+                      onChanged: (value) {
+                        setState(() {
+                          _useRegexSearch = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text('Use Regex'),
+                  ],
+                ),
+                const Spacer(),
+                if (_searchFromDate != null && _searchToDate != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.date_range, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_searchFromDate!.day}/${_searchFromDate!.month} - ${_searchToDate!.day}/${_searchToDate!.month}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _searchFromDate = null;
+                              _searchToDate = null;
+                            });
+                          },
+                          child: const Icon(Icons.close, size: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            if (_filteredMessages.length != _messages.length) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  'Showing ${_filteredMessages.length} of ${_messages.length} messages',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _produceMessage() async {
@@ -1518,20 +1790,41 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
             ),
           ),
           const SizedBox(height: 16),
+          _buildSearchControls(),
+          const SizedBox(height: 16),
           Expanded(
             child: Card(
               child: _messages.isEmpty
                   ? const Center(
                       child: Text('No messages yet. Start producing or consuming messages.'),
                     )
-                  : ListView.builder(
-                      controller: _messagesScrollController,
-                      itemCount: _messages.length,
-                      itemBuilder: (context, index) {
-                        final message = _messages[index];
-                        return _buildMessageCard(message);
-                      },
-                    ),
+                  : _filteredMessages.isEmpty
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.search_off, size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'No messages match your search criteria',
+                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Try adjusting your search terms or filters',
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _messagesScrollController,
+                          itemCount: _filteredMessages.length,
+                          itemBuilder: (context, index) {
+                            final message = _filteredMessages[index];
+                            return _buildMessageCard(message);
+                          },
+                        ),
             ),
           ),
         ],
@@ -1549,6 +1842,41 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
       } catch (e) {
         // Keep original value if JSON parsing fails
       }
+    }
+
+    // Highlight search terms in the message card
+    Widget highlightText(String text, String searchQuery) {
+      if (searchQuery.isEmpty || !text.toLowerCase().contains(searchQuery.toLowerCase())) {
+        return Text(text);
+      }
+      
+      final String lowerText = text.toLowerCase();
+      final String lowerQuery = searchQuery.toLowerCase();
+      final List<TextSpan> spans = [];
+      
+      int start = 0;
+      int index = lowerText.indexOf(lowerQuery);
+      
+      while (index != -1) {
+        if (index > start) {
+          spans.add(TextSpan(text: text.substring(start, index)));
+        }
+        spans.add(TextSpan(
+          text: text.substring(index, index + searchQuery.length),
+          style: const TextStyle(
+            backgroundColor: Colors.yellow,
+            fontWeight: FontWeight.bold,
+          ),
+        ));
+        start = index + searchQuery.length;
+        index = lowerText.indexOf(lowerQuery, start);
+      }
+      
+      if (start < text.length) {
+        spans.add(TextSpan(text: text.substring(start)));
+      }
+      
+      return RichText(text: TextSpan(children: spans, style: const TextStyle(color: Colors.black)));
     }
 
     return Card(
@@ -1599,53 +1927,111 @@ class _KafkaClientScreenState extends State<KafkaClientScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (message.key != null) ...[
+                  const Text(
+                    'Key:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: _messageSearchQuery.isNotEmpty && _searchFilter == 'key'
+                        ? highlightText(message.key!, _messageSearchQuery)
+                        : SelectableText(message.key!),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                const Text(
+                  'Value:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: _isHighlighterReady && _prettyPrintJson && _isValidJson(message.value)
+                      ? SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: RichText(text: _jsonHighlighter!.highlight(displayValue)),
+                        )
+                      : _messageSearchQuery.isNotEmpty && (_searchFilter == 'value' || _searchFilter == 'all')
+                          ? highlightText(displayValue, _messageSearchQuery)
+                          : SelectableText(
+                              displayValue,
+                              style: const TextStyle(fontFamily: 'monospace'),
+                            ),
+                ),
+                if (message.headers.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Headers:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: message.headers.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${entry.key}: ',
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              Expanded(
+                                child: _messageSearchQuery.isNotEmpty && _searchFilter == 'headers'
+                                    ? highlightText(entry.value, _messageSearchQuery)
+                                    : SelectableText(entry.value),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Text('Value:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const Spacer(),
-                    IconButton(
+                    OutlinedButton.icon(
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: message.value));
                         _showSnackBar('Message value copied to clipboard', Colors.green);
                       },
-                      icon: const Icon(Icons.copy),
-                      tooltip: 'Copy to clipboard',
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy Value'),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        final messageJson = jsonEncode(message.toJson());
+                        Clipboard.setData(ClipboardData(text: messageJson));
+                        _showSnackBar('Full message copied to clipboard', Colors.green);
+                      },
+                      icon: const Icon(Icons.content_copy, size: 16),
+                      label: const Text('Copy All'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                  ),
-                  child: _isHighlighterReady && _isValidJson(message.value)
-                      ? SelectableText.rich(
-                          _jsonHighlighter!.highlight(displayValue),
-                          style: const TextStyle(fontFamily: 'monospace'),
-                        )
-                      : SelectableText(
-                          displayValue,
-                          style: const TextStyle(fontFamily: 'monospace'),
-                        ),
-                ),
-                if (message.headers.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  const Text('Headers:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ...message.headers.entries.map((entry) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          children: [
-                            Text('${entry.key}: ', style: const TextStyle(fontWeight: FontWeight.w500)),
-                            Expanded(child: Text(entry.value)),
-                          ],
-                        ),
-                      )),
-                ],
               ],
             ),
           ),
