@@ -28,5 +28,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- Add screen recording usage description -->
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>This app needs screen recording permission to capture screenshots for the screenshot tool.</string>
 </dict>
 </plist>

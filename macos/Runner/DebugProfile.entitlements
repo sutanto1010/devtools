@@ -18,5 +18,8 @@
 	<array>
 		<string>/</string>
 	</array>
+	<!-- Add screen recording entitlement -->
+	<key>com.apple.security.device.screen-recording</key>
+	<true/>
 </dict>
 </plist>
