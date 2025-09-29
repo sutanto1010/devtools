@@ -18,12 +18,14 @@ class ScreenshotScreen extends StatefulWidget {
   ScreenshotScreen({super.key, this.toolParam}){
     if (toolParam != null) {
       () async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        if(isCapturing) return;
         await _takeScreenshot(mode: captureModes[toolParam!] ?? CaptureMode.region);
         await HomePage.showAndFocusWindow();
       }();
     }
   }
-  var _isCapturing = false;
+  var isCapturing = false;
 
   final String? toolParam;
   Uint8List? imageData;
@@ -31,7 +33,7 @@ class ScreenshotScreen extends StatefulWidget {
   @override
   State<ScreenshotScreen> createState() => _ScreenshotScreenState();
   Future<void> _takeScreenshot({CaptureMode mode = CaptureMode.region}) async {
-    if (_isCapturing) return;
+    if (isCapturing) return;
   
 
     try {
@@ -76,6 +78,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   @override
   void initState() {
     super.initState();
+    widget.isCapturing = true;
     // Schedule the post-render callback
     WidgetsBinding.instance.addPostFrameCallback( (_) async{
       await _onUIRendered();
@@ -87,10 +90,15 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   Future<void> _onUIRendered() async {
     if(widget.toolParam != null){
       // await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
-      setState(() {
-        _imageData = widget.imageData;
-      });
-      await HomePage.showAndFocusWindow();
+     if (widget.imageData != null) {
+        setState(() {
+          _imageData = widget.imageData;
+        });
+      }else{
+        await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
+        await HomePage.showAndFocusWindow();
+      }
+      // await HomePage.showAndFocusWindow();
     }
   }
 
@@ -152,7 +160,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
         imagePath: imagePath,
-        copyToClipboard: false,
+        copyToClipboard: true,
       );
 
       if (capturedData != null && capturedData.imagePath != null) {

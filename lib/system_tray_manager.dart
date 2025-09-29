@@ -118,7 +118,7 @@ class SystemTrayManager with TrayListener {
       ));
       menuItems.add(MenuItem(
         key: 'tool_screenshot;desktop',
-        label: 'Screenshot - Desktop',
+        label: 'Screenshot - Full Screen',
       ));
       menuItems.add(MenuItem.separator());
       menuItems.add(MenuItem(
