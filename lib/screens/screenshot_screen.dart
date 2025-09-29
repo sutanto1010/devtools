@@ -10,12 +10,57 @@ import 'dart:io';
 import 'dart:typed_data';
 
 class ScreenshotScreen extends StatefulWidget {
-  const ScreenshotScreen({super.key, this.toolParam});
+  final captureModes = <String, CaptureMode>{
+    'region': CaptureMode.region,
+    'window': CaptureMode.window,
+    'desktop': CaptureMode.screen,
+  };
+  ScreenshotScreen({super.key, this.toolParam}){
+    if (toolParam != null) {
+      () async {
+        await _takeScreenshot(mode: captureModes[toolParam!] ?? CaptureMode.region);
+        await HomePage.showAndFocusWindow();
+      }();
+    }
+  }
+  var _isCapturing = false;
 
   final String? toolParam;
+  Uint8List? imageData;
 
   @override
   State<ScreenshotScreen> createState() => _ScreenshotScreenState();
+  Future<void> _takeScreenshot({CaptureMode mode = CaptureMode.region}) async {
+    if (_isCapturing) return;
+  
+
+    try {
+      // Create a temporary directory for the screenshot
+      final directory = await getTemporaryDirectory();
+      final fileName = 'screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
+      final imagePath = '${directory.path}/$fileName';
+
+      // Capture screenshot using screen_capturer
+      CapturedData? capturedData = await screenCapturer.capture(
+        mode: mode,
+        imagePath: imagePath,
+        copyToClipboard: false,
+      );
+
+      if (capturedData != null && capturedData.imagePath != null) {
+        // Read the captured image file
+        final file = File(capturedData.imagePath!);
+        if (await file.exists()) {
+          final imageData = await file.readAsBytes();
+          this.imageData = imageData;
+          // Clean up temporary file
+          await file.delete();
+        }
+      }
+    } catch (e) {
+      print('Error taking screenshot: $e');
+    }
+  }
 }
 
 class _ScreenshotScreenState extends State<ScreenshotScreen> {
@@ -41,7 +86,10 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
   // Method that gets called after UI is completely rendered
   Future<void> _onUIRendered() async {
     if(widget.toolParam != null){
-      await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
+      // await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
+      setState(() {
+        _imageData = widget.imageData;
+      });
       await HomePage.showAndFocusWindow();
     }
   }

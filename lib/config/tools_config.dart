@@ -218,7 +218,7 @@ class ToolsConfig {
       'icon': Icons.screenshot,
       'title': 'Screenshot Tool',
       'description': 'Take screenshots with text annotation, drawing shapes, and cropping features',
-      'screen': const ScreenshotScreen(),
+      'screen': ScreenshotScreen(),
     },
     {
       'id': 'basic_auth_generator',

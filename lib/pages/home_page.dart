@@ -92,6 +92,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   }
 
   void _handleTabChange() {
+    print('Tab changed to: ${_tabController.index}');
     // // If the plus button tab is selected, open drawer and switch back to previous tab
     // if (_tabController.index == _openTabs.length) {
     //   // Switch back to the last actual tab
