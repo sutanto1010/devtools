@@ -72,12 +72,16 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getRecentTools({int limit = 10}) async {
     final db = await database;
-    final result = await db.query(
-      'tool_history',
-      orderBy: 'timestamp DESC',
-      limit: limit,
-    );
-    
+    // Get the most recent entry per tool_id, then order by timestamp DESC and limit
+    final result = await db.rawQuery('''
+      SELECT * FROM tool_history
+      WHERE id IN (
+        SELECT MAX(id) FROM tool_history GROUP BY tool_id
+      )
+      ORDER BY timestamp DESC
+      LIMIT ?
+    ''', [limit]);
+
     return result.map((row) => {
       'id': row['tool_id'],
       'title': row['tool_title'],

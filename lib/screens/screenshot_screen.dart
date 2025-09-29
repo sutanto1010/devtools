@@ -16,7 +16,7 @@ class ScreenshotScreen extends StatefulWidget {
     'desktop': CaptureMode.screen,
   };
   ScreenshotScreen({super.key, this.toolParam}){
-    if (toolParam != null) {
+    if (toolParam != null && toolParam !="") {
       () async {
         await Future.delayed(const Duration(milliseconds: 100));
         if(isCapturing) return;
@@ -46,7 +46,7 @@ class ScreenshotScreen extends StatefulWidget {
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
         imagePath: imagePath,
-        copyToClipboard: false,
+        copyToClipboard: true,
       );
 
       if (capturedData != null && capturedData.imagePath != null) {
@@ -88,7 +88,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
 
   // Method that gets called after UI is completely rendered
   Future<void> _onUIRendered() async {
-    if(widget.toolParam != null){
+    if(widget.toolParam != null && widget.toolParam !=""){
       // await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
      if (widget.imageData != null) {
         setState(() {

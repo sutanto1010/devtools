@@ -141,7 +141,9 @@ class SystemTrayManager with TrayListener {
     if (onToolSelected != null) {
       onToolSelected!(toolId);
     }
-    // _showMainWindow();
+    if(!toolId.contains("screenshot")){
+      _showMainWindow();
+    }
   }
   
 
