@@ -93,10 +93,12 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
      if (widget.imageData != null) {
         setState(() {
           _imageData = widget.imageData;
+          _showSnackBar('Screenshot saved to clipboard!');
         });
       }else{
         await _takeScreenshot(mode: captureModes[widget.toolParam!] ?? CaptureMode.region);
         await HomePage.showAndFocusWindow();
+         _showSnackBar('Screenshot saved to clipboard!');
       }
       // await HomePage.showAndFocusWindow();
     }
