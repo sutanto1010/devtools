@@ -214,6 +214,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       final currentIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+      _tabController.addListener(_handleTabChange);
       
       // Adjust current tab index if necessary
       if (currentIndex > _openTabs.length) {
@@ -225,6 +226,87 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
         _tabController.index = currentIndex;
       }
     }
+  }
+
+  Future<void> _closeOtherTabs(int keepIndex) async {
+    // Show confirmation dialog
+    final bool? shouldClose = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Close Other Tabs'),
+          content: Text('Are you sure you want to close all other tabs except "${_openTabs[keepIndex].title}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Close Others'),
+            ),
+          ],
+        );
+      },
+    );
+    
+    // Only close if user confirmed
+    if (shouldClose == true) {
+      setState(() {
+        final tabToKeep = _openTabs[keepIndex];
+        _openTabs.clear();
+        _openTabs.add(tabToKeep);
+      });
+      
+      // Update tab controller - add 1 for plus button
+      _tabController.dispose();
+      _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+      _tabController.addListener(_handleTabChange);
+      
+      // Switch to the kept tab (which is now at index 0)
+      _tabController.index = 0;
+    }
+  }
+
+  void _showTabContextMenu(BuildContext context, int index, Offset position) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        position.dx + 1,
+        position.dy + 1,
+      ),
+      items: [
+        PopupMenuItem(
+          value: 'close',
+          child: const Row(
+            children: [
+              Icon(Icons.close, size: 16),
+              SizedBox(width: 8),
+              Text('Close Tab'),
+            ],
+          ),
+        ),
+        if (_openTabs.length > 1)
+          PopupMenuItem(
+            value: 'close_others',
+            child: const Row(
+              children: [
+                Icon(Icons.clear_all, size: 16),
+                SizedBox(width: 8),
+                Text('Close Others'),
+              ],
+            ),
+          ),
+      ],
+    ).then((value) {
+      if (value == 'close') {
+        _closeTab(index);
+      } else if (value == 'close_others') {
+        _closeOtherTabs(index);
+      }
+    });
   }
 
 
@@ -265,20 +347,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
                   final index = entry.key;
                   final tab = entry.value;
                   return Tab(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(tab.icon, size: 16),
-                        const SizedBox(width: 8),
-                        Text(tab.title),
-                        ...[
+                    child: GestureDetector(
+                      onSecondaryTapDown: (details) {
+                        _showTabContextMenu(context, index, details.globalPosition);
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(tab.icon, size: 16),
                           const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () async => await _closeTab(index),
-                            child: const Icon(Icons.close, size: 16),
-                          ),
+                          Text(tab.title),
+                          ...[
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () async => await _closeTab(index),
+                              child: const Icon(Icons.close, size: 16),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   );
                 }),
