@@ -78,6 +78,7 @@ class DatabaseHelper {
       WHERE id IN (
         SELECT MAX(id) FROM tool_history GROUP BY tool_id
       )
+      AND tool_id NOT LIKE '%screenshot%'
       ORDER BY timestamp DESC
       LIMIT ?
     ''', [limit]);

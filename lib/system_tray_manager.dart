@@ -14,7 +14,7 @@ class SystemTrayManager with TrayListener {
   Function(String toolId)? onToolSelected;
   
   // Add a field to store suggested tools temporarily
-  List<Map<String, dynamic>>? _suggestedTools;
+  List<Map<String, dynamic>>? _suggestedTools=[];
 
   Future<void> initSystemTray() async {
     try {
@@ -83,18 +83,16 @@ class SystemTrayManager with TrayListener {
   }
 
   Future<void> _updateTrayMenu() async {
+    // if suggested tools is less than 5,  
     try {
       List<MenuItem> menuItems = [];
-      
-      if (_suggestedTools != null && _suggestedTools!.isNotEmpty) {
-        // Add suggested tools section
-        menuItems.add(MenuItem(
-          key: 'suggested_tools_header',
-          label: 'Suggested Tools',
-          disabled: true,
-        ));
-        menuItems.add(MenuItem.separator());
-        
+      menuItems.add(MenuItem(
+        key: 'suggested_tools_header',
+        label: 'Suggested Tools',
+        disabled: true,
+      ));
+       menuItems.add(MenuItem.separator());
+      if (_suggestedTools != null && _suggestedTools!.isNotEmpty) {        
         // Add suggested tools
         for (var tool in _suggestedTools!) {
           menuItems.add(MenuItem(
@@ -104,38 +102,25 @@ class SystemTrayManager with TrayListener {
         }
         
         menuItems.add(MenuItem.separator());
-      } else {
-        // Fall back to recent tools if no suggestions
-        final recentTools = await _dbHelper.getRecentTools(limit: 5);
-        
-        if (recentTools.isNotEmpty) {
-          // Add recent tools section
-          menuItems.add(MenuItem(
-            key: 'recent_tools_header',
-            label: 'Suggested Tools',
-            disabled: true,
-          ));
-          menuItems.add(MenuItem.separator());
-          
-          // Add recent tools
-          for (var tool in recentTools) {
-            menuItems.add(MenuItem(
-              key: 'tool_${tool['id']}',
-              label: tool['title'],
-            ));
-          }
-          
-          menuItems.add(MenuItem.separator());
-        } else {
-          // No tools available
-          menuItems.add(MenuItem(
-            key: 'no_tools',
-            label: 'No tools available',
-            disabled: true,
-          ));
-          menuItems.add(MenuItem.separator());
-        }
+      } 
+
+      var limit = 5 - _suggestedTools!.length;
+      if(limit<0){
+        limit=0;
       }
+      final recentTools = await _dbHelper.getRecentTools(limit: limit);
+      
+      if (recentTools.isNotEmpty) {       
+        // Add recent tools
+        for (var tool in recentTools) {
+          menuItems.add(MenuItem(
+            key: 'tool_${tool['id']}',
+            label: tool['title'],
+          ));
+        }
+        menuItems.add(MenuItem.separator());
+      } 
+      
       
       // Add common menu items
       menuItems.add(MenuItem(
