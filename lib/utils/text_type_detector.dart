@@ -148,37 +148,20 @@ class TextTypeDetector {
 
     // Common CSV delimiters: comma, semicolon, tab, pipe
     List<String> delimiters = [',', ';', '\t', '|'];
-    String? detectedDelimiter;
-    int? expectedColumns;
-    int validLines = 0;
 
     // Try each delimiter to find the most consistent one
     for (String delimiter in delimiters) {
-      int currentValidLines = 0;
-      int? currentExpectedColumns;
-
       for (String line in lines) {
         if (line.trim().isEmpty) continue;
 
         int columns = line.split(delimiter).length;
-        if (currentExpectedColumns == null) {
-          currentExpectedColumns = columns;
-        } else if (columns == currentExpectedColumns) {
-          currentValidLines++;
+        if(columns > 2){
+          return true;
         }
-      }
-
-      // Prefer the delimiter with the most valid lines and more than 1 column
-      if (currentValidLines >= validLines &&
-          currentExpectedColumns != null &&
-          currentExpectedColumns > 1) {
-        validLines = currentValidLines;
-        expectedColumns = currentExpectedColumns;
-        detectedDelimiter = delimiter;
       }
     }
 
-    return validLines >= 2 && expectedColumns != null && expectedColumns > 1;
+    return false;
   }
 
   static bool _isUrl(String text) {
@@ -251,55 +234,5 @@ class TextTypeDetector {
     return text.contains('-----BEGIN PGP') || 
            text.contains('-----BEGIN GPG') ||
            text.contains('-----BEGIN RSA');
-  }
-
-  /// Maps detected text types to relevant tool IDs
-  static String? getRelevantToolId(String detectedType) {
-    Map<String, String> typeToTool = {
-      'json': 'json_formatter',
-      'xml': 'xml_formatter',
-      'yaml': 'yaml_formatter',
-      'base64': 'base64_encoder',
-      'jwt': 'jwt_decoder',
-      'csv': 'csv_to_json',
-      'url': 'url_parser',
-      'hex': 'hex_to_ascii',
-      'uuid': 'uuid_generator',
-      'unix_timestamp': 'unix_time_converter',
-      'cron': 'cron_expression',
-      'html': 'html_viewer',
-      'hash': 'hash_generator',
-      'color': 'color_picker',
-      'basic_auth': 'basic_auth_generator',
-      'gpg': 'gpg_tool',
-    };
-
-    return typeToTool[detectedType];
-  }
-
-  /// Gets a human-readable description of the detected type
-  static String getTypeDescription(String detectedType) {
-    Map<String, String> typeDescriptions = {
-      'json': 'JSON data',
-      'xml': 'XML document',
-      'yaml': 'YAML configuration',
-      'base64': 'Base64 encoded data',
-      'jwt': 'JSON Web Token',
-      'csv': 'CSV data',
-      'url': 'Web URL',
-      'hex': 'Hexadecimal data',
-      'uuid': 'UUID identifier',
-      'unix_timestamp': 'Unix timestamp',
-      'cron': 'Cron expression',
-      'html': 'HTML document',
-      'hash': 'Hash value',
-      'color': 'Color code',
-      'basic_auth': 'Basic authentication',
-      'gpg': 'GPG/PGP key',
-      'empty': 'Empty content',
-      'unknown': 'Unknown format',
-    };
-
-    return typeDescriptions[detectedType] ?? 'Unknown format';
   }
 }

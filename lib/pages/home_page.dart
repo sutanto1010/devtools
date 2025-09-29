@@ -46,9 +46,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     
     if (clipboardText.isNotEmpty) {
       String detectedType = TextTypeDetector.detectTextType(clipboardText);
-      String typeDescription = TextTypeDetector.getTypeDescription(detectedType);
-      
-      print("Clipboard content detected as: $typeDescription ($detectedType)");
       
       // Optional: Show a notification or suggest relevant tools
       if (detectedType != 'unknown') {
@@ -58,14 +55,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   }
 
   void _suggestRelevantTool(String detectedType, String content) {
-    String? suggestedTool = TextTypeDetector.getRelevantToolId(detectedType);
-    
-    if (suggestedTool != null) {
-      String typeDescription = TextTypeDetector.getTypeDescription(detectedType);
-      print("Suggested tool: $suggestedTool for $typeDescription");
-      // Here you could show a notification or automatically open the relevant tool
-      // _showToolSuggestion(suggestedTool, detectedType);
-    }
+    var suggestedTools = ToolsConfig.allTools.where((tool) => tool['title'].toString().toLowerCase().contains(detectedType.toLowerCase())).take(5);
+    _systemTrayManager.showSuggestedTools(suggestedTools.toList());
   }
   @override
   void initState() {

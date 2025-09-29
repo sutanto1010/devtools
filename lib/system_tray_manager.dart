@@ -12,6 +12,9 @@ class SystemTrayManager with TrayListener {
   Function()? onShowApp;
   final DatabaseHelper _dbHelper = DatabaseHelper();
   Function(String toolId)? onToolSelected;
+  
+  // Add a field to store suggested tools temporarily
+  List<Map<String, dynamic>>? _suggestedTools;
 
   Future<void> initSystemTray() async {
     try {
@@ -74,22 +77,26 @@ class SystemTrayManager with TrayListener {
     }
   }
 
+  Future<void> showSuggestedTools(List<Map<String, dynamic>> suggestedTools) async {
+    _suggestedTools = suggestedTools;
+    await _updateTrayMenu();
+  }
+
   Future<void> _updateTrayMenu() async {
     try {
-      final recentTools = await _dbHelper.getRecentTools(limit: 5);
       List<MenuItem> menuItems = [];
       
-      if (recentTools.isNotEmpty) {
-        // Add recent tools section
+      if (_suggestedTools != null && _suggestedTools!.isNotEmpty) {
+        // Add suggested tools section
         menuItems.add(MenuItem(
-          key: 'recent_tools_header',
+          key: 'suggested_tools_header',
           label: 'Suggested Tools',
           disabled: true,
         ));
         menuItems.add(MenuItem.separator());
         
-        // Add recent tools
-        for (var tool in recentTools) {
+        // Add suggested tools
+        for (var tool in _suggestedTools!) {
           menuItems.add(MenuItem(
             key: 'tool_${tool['id']}',
             label: tool['title'],
@@ -98,13 +105,36 @@ class SystemTrayManager with TrayListener {
         
         menuItems.add(MenuItem.separator());
       } else {
-        // No recent tools available
-        menuItems.add(MenuItem(
-          key: 'no_recent_tools',
-          label: 'No suggested tools',
-          disabled: true,
-        ));
-        menuItems.add(MenuItem.separator());
+        // Fall back to recent tools if no suggestions
+        final recentTools = await _dbHelper.getRecentTools(limit: 5);
+        
+        if (recentTools.isNotEmpty) {
+          // Add recent tools section
+          menuItems.add(MenuItem(
+            key: 'recent_tools_header',
+            label: 'Suggested Tools',
+            disabled: true,
+          ));
+          menuItems.add(MenuItem.separator());
+          
+          // Add recent tools
+          for (var tool in recentTools) {
+            menuItems.add(MenuItem(
+              key: 'tool_${tool['id']}',
+              label: tool['title'],
+            ));
+          }
+          
+          menuItems.add(MenuItem.separator());
+        } else {
+          // No tools available
+          menuItems.add(MenuItem(
+            key: 'no_tools',
+            label: 'No tools available',
+            disabled: true,
+          ));
+          menuItems.add(MenuItem.separator());
+        }
       }
       
       // Add common menu items
@@ -162,6 +192,8 @@ class SystemTrayManager with TrayListener {
   }
 
   Future<void> updateRecentTools() async {
+    // Clear suggested tools when updating recent tools
+    _suggestedTools = null;
     await _updateTrayMenu();
   }
 
