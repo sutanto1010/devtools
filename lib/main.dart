@@ -29,7 +29,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatelessWidget with WindowListener {
   const MyApp({super.key});
 
   @override
@@ -42,5 +42,9 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomePage(),
     );
+  }
+  @override
+  void onWindowClose() async {
+    await windowManager.hide();
   }
 }
