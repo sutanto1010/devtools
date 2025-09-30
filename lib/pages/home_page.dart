@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   void initState() {
     super.initState();
     // Add 1 to length for the plus button tab
-    _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+    _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
     _tabController.addListener(_handleTabChange);
     _loadRecentlyUsedTools();
     // init system tray
@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     
     // Update tab controller - add 1 for plus button
     _tabController.dispose();
-    _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+    _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
     _tabController.addListener(_handleTabChange);
     
     // Switch to the new tab
@@ -396,6 +396,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
         onToolSelected: _openToolInTab,
       ),
       body: TabBarView(
+        physics: NeverScrollableScrollPhysics(),
         controller: _tabController,
         children: [
           ..._openTabs.map((tab) => 
