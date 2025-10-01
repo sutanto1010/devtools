@@ -434,7 +434,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                             theme: ThemeData.light(),
                             heroTag: "screenshot_editor",
                             mainEditor: MainEditorConfigs(
-                              enableZoom: false,
+                              enableZoom: true,
                               enableCloseButton: false,
                               style: MainEditorStyle(
                                 // background: const Color.fromARGB(255, 145, 142, 142)!,
@@ -449,7 +449,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                               enabled: true,
                               showLayers: true,
                               initialPaintMode: PaintMode.freeStyle,
-                              enableZoom: false,
+                              enableZoom: true,
                             ),
                           ),
                           callbacks: ProImageEditorCallbacks(
