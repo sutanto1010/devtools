@@ -1,6 +1,7 @@
 import 'package:devtools/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pro_image_editor/core/models/styles/sub_editor_page_style.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -433,17 +434,22 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
                             theme: ThemeData.light(),
                             heroTag: "screenshot_editor",
                             mainEditor: MainEditorConfigs(
-                              enableZoom: true,
-                              enableCloseButton: false
+                              enableZoom: false,
+                              enableCloseButton: false,
+                              style: MainEditorStyle(
+                                // background: const Color.fromARGB(255, 145, 142, 142)!,
+                                subEditorPage: SubEditorPageStyle(
+                                  enforceSizeFromMainEditor: true,
+                                  barrierColor: const Color.fromARGB(164, 65, 63, 63)
+                                  // positionBottom: 0
+                                )
+                              )
                             ),
                             paintEditor: PaintEditorConfigs(
                               enabled: true,
-                              enableModeBlur: true,
+                              showLayers: true,
                               initialPaintMode: PaintMode.freeStyle,
-                              enableModeFreeStyle: true,
-                            ),
-                            blurEditor: BlurEditorConfigs(
-                            
+                              enableZoom: false,
                             ),
                           ),
                           callbacks: ProImageEditorCallbacks(
