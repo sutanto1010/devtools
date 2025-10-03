@@ -7,6 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:highlight/languages/json.dart';
 import 'package:highlight/languages/htmlbars.dart';
 import 'package:highlight/languages/javascript.dart';
+import 'package:highlight/languages/xml.dart';
+import 'package:highlight/languages/yaml.dart';
+import 'package:highlight/languages/go.dart';
 import 'package:highlight/highlight_core.dart' show highlight;
 
 void main() async {
@@ -33,6 +36,9 @@ void main() async {
   highlight.registerLanguage('json', json);
   highlight.registerLanguage('htmlbars', htmlbars);
   highlight.registerLanguage('javascript', javascript);
+  highlight.registerLanguage('xml', xml);
+  highlight.registerLanguage('yaml', yaml);
+  highlight.registerLanguage('go', go);
   runApp(const MyApp());
 }
 

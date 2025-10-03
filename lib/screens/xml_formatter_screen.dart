@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/xml.dart';
+import 'package:flutter_highlight/themes/github.dart';
 
 class XmlFormatterScreen extends StatefulWidget {
   const XmlFormatterScreen({super.key});
@@ -9,8 +12,12 @@ class XmlFormatterScreen extends StatefulWidget {
 }
 
 class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  final TextEditingController _outputController = TextEditingController();
+  final CodeController _inputController = CodeController(
+    language: xml,
+  );
+  final CodeController _outputController = CodeController(
+    language: xml,
+  );
   String _errorMessage = '';
   String _successMessage = '';
   bool _sortAttributes = false;
@@ -285,15 +292,11 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
               flex: 2,
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _inputController,
-                    maxLines: null,
-                    expands: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Paste your XML here...',
+                  SingleChildScrollView(
+                    child: CodeTheme(
+                      data: CodeThemeData(styles: githubTheme),
+                      child: CodeField(controller: _inputController),
                     ),
-                    textAlignVertical: TextAlignVertical.top,
                   ),
                   Positioned(
                     top: 8,
@@ -301,56 +304,34 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Tooltip(
-                          message: 'Paste from clipboard',
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                              ),
-                            ),
-                            child: IconButton(
-                              onPressed: _pasteFromClipboard,
-                              icon: const Icon(Icons.content_paste, size: 18),
-                              iconSize: 18,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                              padding: const EdgeInsets.all(4),
-                            ),
+                        IconButton(
+                          onPressed: _pasteFromClipboard,
+                          icon: const Icon(Icons.content_paste, size: 18),
+                          iconSize: 18,
+                          tooltip: 'Paste from clipboard',
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
                           ),
+                          padding: const EdgeInsets.all(4),
                         ),
                         const SizedBox(width: 4),
-                        Tooltip(
-                          message: 'Clear input',
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                              ),
-                            ),
-                            child: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _inputController.clear();
-                                  _errorMessage = '';
-                                  _successMessage = '';
-                                });
-                              },
-                              icon: const Icon(Icons.clear, size: 18),
-                              iconSize: 18,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                              padding: const EdgeInsets.all(4),
-                            ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _inputController.clear();
+                              _errorMessage = '';
+                              _successMessage = '';
+                            });
+                          },
+                          icon: const Icon(Icons.clear, size: 18),
+                          iconSize: 18,
+                          tooltip: 'Clear input',
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
                           ),
+                          padding: const EdgeInsets.all(4),
                         ),
                       ],
                     ),
@@ -486,16 +467,11 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
               flex: 2,
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _outputController,
-                    maxLines: null,
-                    expands: true,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Formatted XML will appear here...',
+                  SingleChildScrollView(
+                    child: CodeTheme(
+                      data: CodeThemeData(styles: githubTheme),
+                      child: CodeField(controller: _outputController),
                     ),
-                    textAlignVertical: TextAlignVertical.top,
                   ),
                   Positioned(
                     top: 8,
