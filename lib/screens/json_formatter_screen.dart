@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:syntax_highlight/syntax_highlight.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/json.dart';
+import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'package:flutter_highlight/themes/github.dart';
+
 
 class JsonFormatterScreen extends StatefulWidget {
   const JsonFormatterScreen({super.key});
@@ -16,7 +21,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   String _errorMessage = '';
   Highlighter? _jsonHighlighter;
   bool _isHighlighterReady = false;
-
+  late HighlighterTheme _jsonTheme;
   @override
   void initState() {
     super.initState();
@@ -25,6 +30,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
 
   Future<void> _initializeHighlighter() async {
     try {
+      _jsonTheme = await HighlighterTheme.loadLightTheme();
       await Highlighter.initialize(['json']);
       _jsonHighlighter = Highlighter(
         language: 'json',
@@ -189,6 +195,10 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
         ),
       );
     } else {
+      final codeController = CodeController(
+        text: controller.text,
+        language: json,
+      );
       textField = Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
@@ -204,7 +214,10 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                     border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
                   ),
                   child: SingleChildScrollView(
-                    child: _buildHighlightedText(controller.text, hintText),
+                    child: CodeTheme(
+                      data: CodeThemeData(styles: githubTheme),
+                      child: CodeField(controller: codeController),
+                    ),
                   ),
                 ),
               ),
