@@ -239,30 +239,15 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             children: [
               if (isInput) ...[
                 // Paste button for input field
-                Tooltip(
-                  message: 'Paste from clipboard',
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: _pasteFromClipboard,
-                      icon: const Icon(Icons.paste, size: 16),
-                      iconSize: 16,
-                      padding: const EdgeInsets.all(4),
-                      constraints: const BoxConstraints(
-                        minWidth: 24,
-                        minHeight: 24,
-                      ),
-                    ),
+                IconButton(
+                  onPressed: _pasteFromClipboard,
+                  icon: const Icon(Icons.paste, size: 16),
+                  iconSize: 16,
+                  padding: const EdgeInsets.all(4),
+                  tooltip: 'Paste from clipboard',
+                  constraints: const BoxConstraints(
+                    minWidth: 24,
+                    minHeight: 24,
                   ),
                 ),
               ] else ...[
