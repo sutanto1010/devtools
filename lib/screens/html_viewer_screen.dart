@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/htmlbars.dart';
+import 'package:highlight/languages/javascript.dart';
+import 'package:flutter_highlight/themes/github.dart';
 
 class HtmlViewerScreen extends StatefulWidget {
   const HtmlViewerScreen({super.key});
@@ -12,7 +16,9 @@ class HtmlViewerScreen extends StatefulWidget {
 }
 
 class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
-  final TextEditingController _htmlController = TextEditingController();
+  final CodeController _htmlController = CodeController(
+    language: htmlbars,
+  );
   late final WebViewController _webViewController;
   bool _isWebViewVisible = false;
   String _errorMessage = '';
@@ -142,7 +148,7 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
     });
 
     try {
-      final htmlContent = _htmlController.text.trim();
+      final htmlContent = _htmlController.fullText.trim();
       if (htmlContent.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter HTML content to render';
@@ -157,28 +163,6 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
     } catch (e) {
       setState(() {
         _errorMessage = 'Error rendering HTML: ${e.toString()}';
-      });
-    }
-  }
-
-  void _loadFromFile() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['html', 'htm'],
-      );
-
-      if (result != null) {
-        File file = File(result.files.single.path!);
-        String content = await file.readAsString();
-        setState(() {
-          _htmlController.text = content;
-          _errorMessage = '';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error loading file: ${e.toString()}';
       });
     }
   }
@@ -325,18 +309,10 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
                         ),
                         const SizedBox(height: 8),
                         Expanded(
-                          child: TextField(
-                            controller: _htmlController,
-                            maxLines: null,
-                            expands: true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Enter your HTML code here...\n\nTip: Include <style> tags for CSS and <script> tags for JavaScript',
-                            ),
-                            textAlignVertical: TextAlignVertical.top,
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 14,
+                          child: SingleChildScrollView(
+                            child: CodeTheme(
+                              data: CodeThemeData(styles: githubTheme),
+                              child: CodeField(controller: _htmlController),
                             ),
                           ),
                         ),
