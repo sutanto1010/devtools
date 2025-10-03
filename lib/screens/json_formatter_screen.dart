@@ -233,7 +233,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                 icon: _isFullScreen ? const Icon(Icons.fullscreen_exit, size: 16) : const Icon(Icons.fullscreen, size: 16),
                 iconSize: 16,
                 padding: const EdgeInsets.all(4),
-                tooltip: _isFullScreen ? 'Minimize' : 'Maximize',
+                tooltip: _isFullScreen ? 'Full window' : 'Exit full window',
                 constraints: const BoxConstraints(
                   minWidth: 24,
                   minHeight: 24,
