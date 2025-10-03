@@ -273,41 +273,6 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     );
   }
 
-  Widget _buildHighlightedText(String text, String hintText) {
-    if (text.isEmpty) {
-      return Text(
-        hintText,
-        style: const TextStyle(
-          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
-          fontSize: 14,
-          color: Colors.grey,
-        ),
-      );
-    }
-
-    try {
-      // Validate JSON before highlighting
-      jsonDecode(text);
-      final highlighted = _jsonHighlighter!.highlight(text);
-      return SelectableText.rich(
-        highlighted,
-        style: const TextStyle(
-          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
-          fontSize: 14,
-        ),
-      );
-    } catch (e) {
-      // If JSON is invalid, show plain text
-      return Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
-          fontSize: 14,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
