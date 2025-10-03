@@ -267,30 +267,15 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                 ),
               ] else ...[
                 // Copy button for output field
-                Tooltip(
-                  message: 'Copy to clipboard',
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: _copyToClipboard,
-                      icon: const Icon(Icons.copy, size: 16),
-                      iconSize: 16,
-                      padding: const EdgeInsets.all(4),
-                      constraints: const BoxConstraints(
-                        minWidth: 24,
-                        minHeight: 24,
-                      ),
-                    ),
+                IconButton(
+                  onPressed: _copyToClipboard,
+                  icon: const Icon(Icons.copy, size: 16),
+                  iconSize: 16,
+                  tooltip: 'Copy to clipboard',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(
+                    minWidth: 24,
+                    minHeight: 24,
                   ),
                 ),
               ],
