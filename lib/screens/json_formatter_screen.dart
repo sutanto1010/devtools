@@ -22,16 +22,21 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   Highlighter? _jsonHighlighter;
   bool _isHighlighterReady = false;
   late HighlighterTheme _jsonTheme;
-  bool _isFullscreen = false;
+  bool _isFullscreenOutput = false;
+  bool _isFullscreenInput = false;
 
   @override
   void initState() {
     super.initState();
     _initializeHighlighter();
   }
-  void _toggleFullscreen() {
+  void _toggleFullscreen(bool isInput) {
     setState(() {
-      _isFullscreen = !_isFullscreen;
+      if (isInput) {
+        _isFullscreenInput = !_isFullscreenInput;
+      } else {
+        _isFullscreenOutput = !_isFullscreenOutput;
+      }
     });
   }
   Future<void> _initializeHighlighter() async {
@@ -109,7 +114,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       });
     }
   }
-
+  bool get _isFullScreen => _isFullscreenInput || _isFullscreenOutput;
   void _pasteFromClipboard() async {
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
@@ -224,11 +229,11 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                onPressed: _toggleFullscreen,
-                icon: const Icon(Icons.fullscreen, size: 16),
+                onPressed: () => _toggleFullscreen(isInput),
+                icon: _isFullScreen ? const Icon(Icons.fullscreen_exit, size: 16) : const Icon(Icons.fullscreen, size: 16),
                 iconSize: 16,
                 padding: const EdgeInsets.all(4),
-                tooltip: 'Full window',
+                tooltip: _isFullScreen ? 'Minimize' : 'Maximize',
                 constraints: const BoxConstraints(
                   minWidth: 24,
                   minHeight: 24,
@@ -312,6 +317,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Top - Input
+            if(!_isFullscreenOutput)
             Expanded(
               flex: 2,
               child: Column(
@@ -334,6 +340,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             ),
             const SizedBox(height: 16),
             // Center - Buttons and Error
+            if(!(_isFullscreenInput || _isFullscreenOutput))
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -371,8 +378,10 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                 ),
               ),
             ],
+            if(!_isFullscreenOutput)
             const SizedBox(height: 16),
             // Bottom - Output
+            if(!_isFullscreenInput)
             Expanded(
               flex: 2,
               child: Column(
