@@ -63,7 +63,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     super.initState();
     // Add 1 to length for the plus button tab
     _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-    _tabController.addListener(_handleTabChange);
     _loadRecentlyUsedTools();
     // init system tray
     _systemTrayManager.initSystemTray();
@@ -82,19 +81,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     clipboardWatcher.start();
   }
 
-  void _handleTabChange() {
-    print('Tab changed to: ${_tabController.index}');
-    // // If the plus button tab is selected, open drawer and switch back to previous tab
-    // if (_tabController.index == _openTabs.length) {
-    //   // Switch back to the last actual tab
-    //   if (_openTabs.isNotEmpty) {
-    //     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //       _tabController.animateTo(_openTabs.length - 1);
-    //     });
-    //   }
-    // }
-  }
-
   void _handleSystemTrayToolSelection(String toolId) {
     final temp = toolId.split(';');
     final tool = ToolsConfig.allTools.firstWhere(
@@ -110,7 +96,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   @override
   void dispose() {
     _searchController.dispose();
-    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     clipboardWatcher.removeListener(this);
     // stop watch
@@ -172,7 +157,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     // Update tab controller - add 1 for plus button
     _tabController.dispose();
     _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-    _tabController.addListener(_handleTabChange);
     
     // Switch to the new tab
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -214,7 +198,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       final currentIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this);
-      _tabController.addListener(_handleTabChange);
       
       // Adjust current tab index if necessary
       if (currentIndex > _openTabs.length) {
@@ -261,7 +244,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       // Update tab controller - add 1 for plus button
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this);
-      _tabController.addListener(_handleTabChange);
+
       
       // Switch to the kept tab (which is now at index 0)
       _tabController.index = 0;
