@@ -22,12 +22,18 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   Highlighter? _jsonHighlighter;
   bool _isHighlighterReady = false;
   late HighlighterTheme _jsonTheme;
+  bool _isFullscreen = false;
+
   @override
   void initState() {
     super.initState();
     _initializeHighlighter();
   }
-
+  void _toggleFullscreen() {
+    setState(() {
+      _isFullscreen = !_isFullscreen;
+    });
+  }
   Future<void> _initializeHighlighter() async {
     try {
       _jsonTheme = await HighlighterTheme.loadLightTheme();
@@ -176,26 +182,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     bool isInput = true,
   }) {
     Widget textField;
-    
-    if (!_isHighlighterReady || _jsonHighlighter == null || isInput) {
-      // Fallback to regular TextField if highlighter is not ready
-      textField = TextField(
-        controller: controller,
-        maxLines: null,
-        expands: true,
-        readOnly: readOnly,
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          hintText: hintText,
-        ),
-        textAlignVertical: TextAlignVertical.top,
-        style: const TextStyle(
-          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
-          fontSize: 14,
-        ),
-      );
-    } else {
-      final codeController = CodeController(
+    final codeController = CodeController(
         text: controller.text,
         language: json,
       );
@@ -224,7 +211,6 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
           ],
         ),
       );
-    }
 
     // Wrap in Stack to add overlay buttons
     return Stack(
@@ -237,6 +223,17 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              IconButton(
+                onPressed: _toggleFullscreen,
+                icon: const Icon(Icons.fullscreen, size: 16),
+                iconSize: 16,
+                padding: const EdgeInsets.all(4),
+                tooltip: 'Full window',
+                constraints: const BoxConstraints(
+                  minWidth: 24,
+                  minHeight: 24,
+                ),
+              ),
               if (isInput) ...[
                 // Paste button for input field
                 IconButton(
