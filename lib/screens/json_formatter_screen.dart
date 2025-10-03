@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:syntax_highlight/syntax_highlight.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:highlight/languages/json.dart';
-import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:flutter_highlight/themes/github.dart';
 
 
@@ -16,19 +14,22 @@ class JsonFormatterScreen extends StatefulWidget {
 }
 
 class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  final TextEditingController _outputController = TextEditingController();
   String _errorMessage = '';
-  Highlighter? _jsonHighlighter;
-  bool _isHighlighterReady = false;
-  late HighlighterTheme _jsonTheme;
   bool _isFullscreenOutput = false;
   bool _isFullscreenInput = false;
+  final CodeController _inputCodeController = CodeController(
+    text: '',
+    language: json,
+  );
+  final CodeController _outputCodeController = CodeController(
+    text: '',
+    language: json,
+  );
 
   @override
   void initState() {
     super.initState();
-    _initializeHighlighter();
+
   }
   void _toggleFullscreen(bool isInput) {
     setState(() {
@@ -39,33 +40,16 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       }
     });
   }
-  Future<void> _initializeHighlighter() async {
-    try {
-      _jsonTheme = await HighlighterTheme.loadLightTheme();
-      await Highlighter.initialize(['json']);
-      _jsonHighlighter = Highlighter(
-        language: 'json',
-        theme: await HighlighterTheme.loadLightTheme(),
-      );
-      setState(() {
-        _isHighlighterReady = true;
-      });
-    } catch (e) {
-      // Fallback if highlighter fails to initialize
-      setState(() {
-        _isHighlighterReady = false;
-      });
-    }
-  }
+
 
   void _formatJson() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _outputCodeController.clear();
     });
 
     try {
-      final input = _inputController.text.trim();
+      final input = _inputCodeController.text.trim();
       if (input.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter JSON to format';
@@ -78,7 +62,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       final formattedJson = encoder.convert(jsonObject);
       
       setState(() {
-        _outputController.text = formattedJson;
+        _outputCodeController.text = formattedJson;
       });
     } catch (e) {
       setState(() {
@@ -90,11 +74,11 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   void _minifyJson() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _outputCodeController.clear();
     });
 
     try {
-      final input = _inputController.text.trim();
+      final input = _inputCodeController.text.trim();
       if (input.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter JSON to minify';
@@ -106,7 +90,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       final minifiedJson = jsonEncode(jsonObject);
       
       setState(() {
-        _outputController.text = minifiedJson;
+        _outputCodeController.text = minifiedJson;
       });
     } catch (e) {
       setState(() {
@@ -120,7 +104,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
         setState(() {
-          _inputController.text = clipboardData.text!;
+          _inputCodeController.text = clipboardData.text!;
           _errorMessage = '';
         });
         
@@ -147,14 +131,14 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
 
   void _clearAll() {
     setState(() {
-      _inputController.clear();
-      _outputController.clear();
+      _inputCodeController.clear();
+      _outputCodeController.clear();
       _errorMessage = '';
     });
   }
 
   void _copyToClipboard() async {
-    final output = _outputController.text;
+    final output = _outputCodeController.text;
     if (output.isEmpty) {
       setState(() {
         _errorMessage = 'No formatted JSON to copy';
@@ -181,17 +165,11 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   }
 
   Widget _buildHighlightedTextField({
-    required TextEditingController controller,
     required String hintText,
     bool readOnly = false,
     bool isInput = true,
   }) {
-    Widget textField;
-    final codeController = CodeController(
-        text: controller.text,
-        language: json,
-      );
-      textField = Container(
+      var textField = Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(4),
@@ -208,7 +186,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                   child: SingleChildScrollView(
                     child: CodeTheme(
                       data: CodeThemeData(styles: githubTheme),
-                      child: CodeField(controller: codeController),
+                      child: CodeField(controller: isInput ? _inputCodeController : _outputCodeController),
                     ),
                   ),
                 ),
@@ -295,7 +273,6 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                   const SizedBox(height: 8),
                   Expanded(
                     child: _buildHighlightedTextField(
-                      controller: _inputController,
                       hintText: 'Paste your JSON here...',
                       isInput: true,
                     ),
@@ -359,7 +336,6 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                   const SizedBox(height: 8),
                   Expanded(
                     child: _buildHighlightedTextField(
-                      controller: _outputController,
                       hintText: 'Formatted JSON will appear here...',
                       readOnly: true,
                       isInput: false,
@@ -376,8 +352,8 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
 
   @override
   void dispose() {
-    _inputController.dispose();
-    _outputController.dispose();
+    _inputCodeController.dispose();
+    _outputCodeController.dispose();
     super.dispose();
   }
 }
