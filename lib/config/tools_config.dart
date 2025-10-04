@@ -295,77 +295,75 @@ class ToolsConfig {
   static Widget createScreen(String toolId, String? toolParam) {
     switch (toolId) {
       case 'json_formatter':
-        return JsonFormatterScreen();
+        return JsonFormatterScreen(key: UniqueKey(),);
       case 'xml_formatter':
-        return XmlFormatterScreen();
+        return XmlFormatterScreen(key: UniqueKey(),);
       case 'yaml_formatter':
-        return YamlFormatterScreen();
+        return YamlFormatterScreen(key: UniqueKey(),);
       case 'csv_to_json':
-        return CsvToJsonScreen();
+        return CsvToJsonScreen(key: UniqueKey(),);
       case 'csv_explorer':
-        return CsvExplorerScreen();
+        return CsvExplorerScreen(key: UniqueKey(),);
       case 'xml_to_json':
-        return XmlToJsonScreen();
+        return XmlToJsonScreen(key: UniqueKey(),);
       case 'yaml_to_json':
-        return YamlToJsonScreen();
+        return YamlToJsonScreen(key: UniqueKey(),);
       case 'json_explorer':
-        return JsonExplorerScreen();
+        return JsonExplorerScreen(key: UniqueKey(),);
       case 'base64_encoder':
-        return Base64Screen();
+        return Base64Screen(key: UniqueKey(),);
       case 'hex_to_ascii':
-        return HexToAsciiScreen();
+        return HexToAsciiScreen(key: UniqueKey(),);
       case 'gpg_encryption':
-        return GpgScreen();
+        return GpgScreen(key: UniqueKey(),);
       case 'symmetric_encryption':
-        return SymmetricEncryptionScreen();
+        return SymmetricEncryptionScreen(key: UniqueKey(),);
       case 'jwt_decoder':
-        return JwtDecoderScreen();
+        return JwtDecoderScreen(key: UniqueKey(),);
       case 'dns_scanner':
-        return DnsScannerScreen();
+        return DnsScannerScreen(key: UniqueKey(),);
       case 'host_scanner':
-        return HostScannerScreen();
+        return HostScannerScreen(key: UniqueKey(),);
       case 'redis_client':
-        return RedisClientScreen();
+        return RedisClientScreen(key: UniqueKey(),);
       case 'kafka_client':
-        return KafkaClientScreen();
+        return KafkaClientScreen(key: UniqueKey(),);
       case 'unit_converter':
-        return UnitConverterScreen();
+        return UnitConverterScreen(key: UniqueKey(),);
       case 'uuid_generator':
-        return UuidScreen();
+        return UuidScreen(key: UniqueKey(),);
       case 'url_parser':
-        return UrlParserScreen();
+        return UrlParserScreen(key: UniqueKey(),);
       case 'cron_expression':
-        return CronExpressionScreen();
+        return CronExpressionScreen(key: UniqueKey(),);
       case 'color_picker':
-        return ColorPickerScreen();
+        return ColorPickerScreen(key: UniqueKey(),);
       case 'diff_checker':
-        return DiffCheckerScreen();
+        return DiffCheckerScreen(key: UniqueKey(),);
       case 'hash_generator':
-        return HashScreen();
+        return HashScreen(key: UniqueKey(),);
       case 'regex_tester':
-        return RegexTesterScreen();
+        return RegexTesterScreen(key: UniqueKey(),);
       case 'screenshot':
         return ScreenshotScreen(toolParam: toolParam, key: UniqueKey());
       case 'basic_auth_generator':
-        return BasicAuthScreen();
+        return BasicAuthScreen(key: UniqueKey(),);
       case 'chmod_calculator':
-        return ChmodCalculatorScreen();
+        return ChmodCalculatorScreen(key: UniqueKey(),);
       case 'unix_time_converter':
-        return UnixTimeScreen();
+        return UnixTimeScreen(key: UniqueKey(),);
       case 'string_inspector':
-        return StringInspectorScreen();
+        return StringInspectorScreen(key: UniqueKey(),);
       case 'uri_encoder':
-        return UriEncoderScreen();
+        return UriEncoderScreen(key: UniqueKey(),);
       case 'string_replace':
-        return StringReplaceScreen();
+        return StringReplaceScreen(key: UniqueKey(),);
       case 'image_base64':
-        return ImageBase64Screen();
+        return ImageBase64Screen(key: UniqueKey(),);
       case 'html_viewer':
-        return HtmlViewerScreen();
+        return HtmlViewerScreen(key: UniqueKey(),);
       case 'websocket_tester':
-        return WebSocketTesterScreen();
-      case 'kafka_client':
-        return KafkaClientScreen();
+        return WebSocketTesterScreen(key: UniqueKey(),);
       default:
         final tool = allTools.firstWhere((tool) => tool['id'] == toolId);
         return tool['screen'];
