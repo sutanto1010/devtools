@@ -387,17 +387,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   }
 
   Widget getAllTabContents() {
-    if (_currentTabIndex < _openTabs.length) {
-      return _tabWidgets[_currentTabIndex];
-    }
-    // Welcome screen for the plus button tab or when no tabs are open
-    return WelcomeScreen(
-      toolsCount: ToolsConfig.allTools.length,
-      recentTools: _recentTools,
-      onBrowseTools: () {
-        _scaffoldKey.currentState?.openDrawer();
-      },
-      onNavigateToHistoryItem: _navigateToHistoryItem,
+    // Use TabBarView instead of manual widget switching
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        // All tab widgets
+        ..._tabWidgets,
+        // Welcome screen for the plus button tab
+        WelcomeScreen(
+          toolsCount: ToolsConfig.allTools.length,
+          recentTools: _recentTools,
+          onBrowseTools: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+          onNavigateToHistoryItem: _navigateToHistoryItem,
+        ),
+      ],
     );
   }
 
