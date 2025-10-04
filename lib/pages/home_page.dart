@@ -197,17 +197,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       // Update tab controller - add 1 for plus button
       final currentIndex = _tabController.index;
       _tabController.dispose();
-      _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+      _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
       
       // Adjust current tab index if necessary
-      if (currentIndex > _openTabs.length) {
-        final temp = currentIndex - 1;
-        _tabController.index = temp > 0 ? temp : 0;
-      } else if (currentIndex > index) {
-        _tabController.index = currentIndex - 1;
-      } else {
-        _tabController.index = currentIndex;
-      }
+      _tabController.index = currentIndex > index ? currentIndex - 1 : currentIndex;
     }
   }
 
@@ -243,7 +236,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       
       // Update tab controller - add 1 for plus button
       _tabController.dispose();
-      _tabController = TabController(length: _openTabs.length + 1, vsync: this);
+      _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
 
       
       // Switch to the kept tab (which is now at index 0)
@@ -381,22 +374,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       body: TabBarView(
         physics: NeverScrollableScrollPhysics(),
         controller: _tabController,
-        children: [
-          ..._openTabs.map((tab) => 
-            // Wrap each screen in AutomaticKeepAliveClientMixin to preserve state
-            KeepAliveWrapper(child: tab.screen)
-          ),
-          // Welcome screen for the plus button tab or when no tabs are open
-          WelcomeScreen(
-            toolsCount: ToolsConfig.allTools.length,
-            recentTools: _recentTools,
-            onBrowseTools: () {
-              _scaffoldKey.currentState?.openDrawer();
-            },
-            onNavigateToHistoryItem: _navigateToHistoryItem,
-          ),
-        ],
+        children: getAllTabContents,
       ),
     );
+  }
+
+  List<Widget> get getAllTabContents {
+    return [
+        ..._openTabs.map((tab) => 
+          // Wrap each screen in AutomaticKeepAliveClientMixin to preserve state
+          KeepAliveWrapper(child: tab.screen)
+        ),
+        // Welcome screen for the plus button tab or when no tabs are open
+        WelcomeScreen(
+          toolsCount: ToolsConfig.allTools.length,
+          recentTools: _recentTools,
+          onBrowseTools: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+          onNavigateToHistoryItem: _navigateToHistoryItem,
+        ),
+      ];
   }
 }
