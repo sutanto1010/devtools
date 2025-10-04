@@ -38,6 +38,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
   String _searchQuery = '';
   List<Map<String, dynamic>> _recentlyUsedTools = [];
   final List<TabData> _openTabs = [];
+  final List<Widget> _tabWidgets = [];
+  int _currentTabIndex = 0;
 
    @override
   void onClipboardChanged() async {
@@ -63,6 +65,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     super.initState();
     // Add 1 to length for the plus button tab
     _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
+    _tabController.addListener(onTabChanged);
     _loadRecentlyUsedTools();
     // init system tray
     _systemTrayManager.initSystemTray();
@@ -95,6 +98,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
 
   @override
   void dispose() {
+    _tabController.removeListener(onTabChanged);
     _searchController.dispose();
     _tabController.dispose();
     clipboardWatcher.removeListener(this);
@@ -147,8 +151,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       id: tool['id'],
       title: tool['title'],
       icon: tool['icon'],
-      screen: ToolsConfig.createScreen(tool['id'], toolParam),
     );
+    
+    // Create tab widget
+    final tabWidget = KeepAliveWrapper(
+      child: ToolsConfig.createScreen(tool['id'], toolParam),
+    );
+    _tabWidgets.add(tabWidget);
     
     setState(() {
       _openTabs.add(newTab);
@@ -157,6 +166,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     // Update tab controller - add 1 for plus button
     _tabController.dispose();
     _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
+    _tabController.addListener(onTabChanged);
     
     // Switch to the new tab
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -192,13 +202,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     if (shouldClose == true) {
       setState(() {
         _openTabs.removeAt(index);
+        _tabWidgets.removeAt(index);
       });
       
       // Update tab controller - add 1 for plus button
       final currentIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-      
+      _tabController.addListener(onTabChanged);
       // Adjust current tab index if necessary
       _tabController.index = currentIndex > index ? currentIndex - 1 : currentIndex;
     }
@@ -237,7 +248,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       // Update tab controller - add 1 for plus button
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-
+      _tabController.addListener(onTabChanged);
       
       // Switch to the kept tab (which is now at index 0)
       _tabController.index = 0;
@@ -371,29 +382,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
         },
         onToolSelected: _openToolInTab,
       ),
-      body: TabBarView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: _tabController,
-        children: getAllTabContents,
-      ),
+      body: getAllTabContents(),
     );
   }
 
-  List<Widget> get getAllTabContents {
-    return [
-        ..._openTabs.map((tab) => 
-          // Wrap each screen in AutomaticKeepAliveClientMixin to preserve state
-          KeepAliveWrapper(child: tab.screen)
-        ),
-        // Welcome screen for the plus button tab or when no tabs are open
-        WelcomeScreen(
-          toolsCount: ToolsConfig.allTools.length,
-          recentTools: _recentTools,
-          onBrowseTools: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
-          onNavigateToHistoryItem: _navigateToHistoryItem,
-        ),
-      ];
+  Widget getAllTabContents() {
+    if (_currentTabIndex < _openTabs.length) {
+      return _tabWidgets[_currentTabIndex];
+    }
+    // Welcome screen for the plus button tab or when no tabs are open
+    return WelcomeScreen(
+      toolsCount: ToolsConfig.allTools.length,
+      recentTools: _recentTools,
+      onBrowseTools: () {
+        _scaffoldKey.currentState?.openDrawer();
+      },
+      onNavigateToHistoryItem: _navigateToHistoryItem,
+    );
+  }
+
+  void onTabChanged() {
+    print("onTabChanged: ${_tabController.index}");
+    setState(() {
+      _currentTabIndex = _tabController.index;
+    });
   }
 }
