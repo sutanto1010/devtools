@@ -1,3 +1,4 @@
+import 'package:devtools/services/pub_sub_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -8,15 +9,16 @@ import 'package:flutter_highlight/themes/github.dart';
 
 class JsonFormatterScreen extends StatefulWidget {
   const JsonFormatterScreen({super.key});
-
   @override
   State<JsonFormatterScreen> createState() => _JsonFormatterScreenState();
 }
 
 class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
+  final PubSubService _pubSub = PubSubService();
   String _errorMessage = '';
   bool _isFullscreenOutput = false;
   bool _isFullscreenInput = false;
+  
   final CodeController _inputCodeController = CodeController(
     text: '',
     language: json,
@@ -29,7 +31,13 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   @override
   void initState() {
     super.initState();
-
+    // _pubSub.subscribe<int>('on_tab_closed').listen((event) {
+    //   setState(() {
+    //     _errorMessage = _errorMessage;
+    //     _isFullscreenOutput = _isFullscreenOutput;
+    //     _isFullscreenInput = _isFullscreenInput;
+    //   });
+    // });
   }
   void _toggleFullscreen(bool isInput) {
     setState(() {
@@ -186,7 +194,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                   child: SingleChildScrollView(
                     child: CodeTheme(
                       data: CodeThemeData(styles: githubTheme),
-                      child: CodeField(controller: isInput ? _inputCodeController : _outputCodeController),
+                      child: CodeField(controller: isInput ? _inputCodeController : _outputCodeController, key: UniqueKey(),),
                     ),
                   ),
                 ),

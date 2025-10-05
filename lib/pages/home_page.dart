@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:clipboard_watcher/clipboard_watcher.dart';
+import 'package:devtools/services/pub_sub_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
@@ -29,6 +30,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin, ClipboardListener {
+  final PubSubService _pubSub = PubSubService();
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -209,9 +211,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       final currentIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-      _tabController.addListener(onTabChanged);
+      // _tabController.addListener(onTabChanged);
       // Adjust current tab index if necessary
       _tabController.index = currentIndex > index ? currentIndex - 1 : currentIndex;
+      // Publish tab closed event
+      _pubSub.publish('on_tab_closed', index);
     }
   }
 
