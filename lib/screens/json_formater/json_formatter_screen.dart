@@ -8,13 +8,13 @@ import 'package:flutter_highlight/themes/github.dart';
 
 
 class JsonFormatterScreen extends StatefulWidget {
-  const JsonFormatterScreen({super.key});
+  JsonFormatterScreen({super.key});
   @override
   State<JsonFormatterScreen> createState() => _JsonFormatterScreenState();
 }
 
 class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
-  final PubSubService _pubSub = PubSubService();
+  // final PubSubService _pubSub = PubSubService();
   String _errorMessage = '';
   bool _isFullscreenOutput = false;
   bool _isFullscreenInput = false;

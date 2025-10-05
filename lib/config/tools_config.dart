@@ -260,7 +260,7 @@ class ToolsConfig {
   static Widget createScreen(String toolId, String? toolParam) {
     switch (toolId) {
       case 'json_formatter':
-        return const JsonFormatterScreen();
+        return JsonFormatterScreen(key: UniqueKey());
       case 'xml_formatter':
         return const XmlFormatterScreen();
       case 'yaml_formatter':
