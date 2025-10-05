@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/json_formatter_screen.dart';
+import '../screens/json_formater/json_formatter_screen.dart';
 import '../screens/yaml_formatter_screen.dart';
 import '../screens/csv_to_json_screen.dart';
 import '../screens/csv_explorer_screen.dart';
