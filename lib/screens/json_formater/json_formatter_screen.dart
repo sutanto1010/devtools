@@ -172,6 +172,27 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     }
   }
 
+  void _loadSampleJson() {
+    // Sample unformatted JSON
+    const sampleJson = '{"name":"John Doe","age":30,"email":"john.doe@example.com","address":{"street":"123 Main St","city":"New York","state":"NY","zipCode":"10001"},"phoneNumbers":[{"type":"home","number":"212-555-1234"},{"type":"work","number":"646-555-5678"}],"isActive":true,"balance":2543.75,"tags":["developer","team-lead","remote"],"metadata":{"lastLogin":"2024-01-15T08:30:00Z","preferences":{"theme":"dark","notifications":true}}}';
+    
+    setState(() {
+      _inputCodeController.text = sampleJson;
+      _outputCodeController.clear();
+      _errorMessage = '';
+    });
+    
+    // Show success message
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sample JSON loaded!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   Widget _buildHighlightedTextField({
     required String hintText,
     bool readOnly = false,
@@ -310,6 +331,12 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
                   label: const Text('Clear'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _loadSampleJson,
+                  icon: const Icon(Icons.science),
+                  label: const Text('Sample'),
                 ),
               ],
             ),
