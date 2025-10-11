@@ -1,24 +1,33 @@
-import 'package:devtools/services/pub_sub_service.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:highlight/languages/json.dart';
 import 'package:flutter_highlight/themes/github.dart';
+import 'package:devtools/blocs/json_formatter/json_formatter_bloc.dart';
+import 'package:devtools/blocs/json_formatter/json_formatter_event.dart';
+import 'package:devtools/blocs/json_formatter/json_formatter_state.dart';
 
 
-class JsonFormatterScreen extends StatefulWidget {
-  JsonFormatterScreen({super.key});
+class JsonFormatterScreen extends StatelessWidget {
+  const JsonFormatterScreen({super.key});
+
   @override
-  State<JsonFormatterScreen> createState() => _JsonFormatterScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => JsonFormatterBloc(),
+      child: const JsonFormatterView(),
+    );
+  }
 }
 
-class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
-  // final PubSubService _pubSub = PubSubService();
-  String _errorMessage = '';
-  bool _isFullscreenOutput = false;
-  bool _isFullscreenInput = false;
+class JsonFormatterView extends StatefulWidget {
+  const JsonFormatterView({super.key});
   
+  @override
+  State<JsonFormatterView> createState() => _JsonFormatterViewState();
+}
+
+class _JsonFormatterViewState extends State<JsonFormatterView> {
   final CodeController _inputCodeController = CodeController(
     text: '',
     language: json,
@@ -31,172 +40,44 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
   @override
   void initState() {
     super.initState();
-    // _pubSub.subscribe<int>('on_tab_closed').listen((event) {
-    //   setState(() {
-    //     _errorMessage = _errorMessage;
-    //     _isFullscreenOutput = _isFullscreenOutput;
-    //     _isFullscreenInput = _isFullscreenInput;
-    //   });
-    // });
   }
-  void _toggleFullscreen(bool isInput) {
-    setState(() {
-      if (isInput) {
-        _isFullscreenInput = !_isFullscreenInput;
-      } else {
-        _isFullscreenOutput = !_isFullscreenOutput;
-      }
-    });
-  }
-
 
   void _formatJson() {
-    setState(() {
-      _errorMessage = '';
-      _outputCodeController.clear();
-    });
-
-    try {
-      final input = _inputCodeController.text.trim();
-      if (input.isEmpty) {
-        setState(() {
-          _errorMessage = 'Please enter JSON to format';
-        });
-        return;
-      }
-
-      final jsonObject = jsonDecode(input);
-      const encoder = JsonEncoder.withIndent('  ');
-      final formattedJson = encoder.convert(jsonObject);
-      
-      setState(() {
-        _outputCodeController.text = formattedJson;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Invalid JSON: ${e.toString()}';
-      });
-    }
+    final input = _inputCodeController.text;
+    context.read<JsonFormatterBloc>().add(FormatJsonEvent(input));
   }
 
   void _minifyJson() {
-    setState(() {
-      _errorMessage = '';
-      _outputCodeController.clear();
-    });
-
-    try {
-      final input = _inputCodeController.text.trim();
-      if (input.isEmpty) {
-        setState(() {
-          _errorMessage = 'Please enter JSON to minify';
-        });
-        return;
-      }
-
-      final jsonObject = jsonDecode(input);
-      final minifiedJson = jsonEncode(jsonObject);
-      
-      setState(() {
-        _outputCodeController.text = minifiedJson;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Invalid JSON: ${e.toString()}';
-      });
-    }
+    final input = _inputCodeController.text;
+    context.read<JsonFormatterBloc>().add(MinifyJsonEvent(input));
   }
-  bool get _isFullScreen => _isFullscreenInput || _isFullscreenOutput;
-  void _pasteFromClipboard() async {
-    try {
-      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-      if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
-        setState(() {
-          _inputCodeController.text = clipboardData.text!;
-          _errorMessage = '';
-        });
-        
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('JSON pasted from clipboard!'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _errorMessage = 'Clipboard is empty';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to paste from clipboard';
-      });
-    }
+
+  void _pasteFromClipboard() {
+    context.read<JsonFormatterBloc>().add(const PasteFromClipboardEvent());
   }
 
   void _clearAll() {
-    setState(() {
-      _inputCodeController.clear();
-      _outputCodeController.clear();
-      _errorMessage = '';
-    });
+    context.read<JsonFormatterBloc>().add(const ClearAllEvent());
   }
 
-  void _copyToClipboard() async {
+  void _copyToClipboard() {
     final output = _outputCodeController.text;
-    if (output.isEmpty) {
-      setState(() {
-        _errorMessage = 'No formatted JSON to copy';
-      });
-      return;
-    }
-
-    try {
-      await Clipboard.setData(ClipboardData(text: output));
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('JSON copied to clipboard!'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to copy to clipboard';
-      });
-    }
+    context.read<JsonFormatterBloc>().add(CopyToClipboardEvent(output));
   }
 
   void _loadSampleJson() {
-    // Sample unformatted JSON
-    const sampleJson = '{"name":"John Doe","age":30,"email":"john.doe@example.com","address":{"street":"123 Main St","city":"New York","state":"NY","zipCode":"10001"},"phoneNumbers":[{"type":"home","number":"212-555-1234"},{"type":"work","number":"646-555-5678"}],"isActive":true,"balance":2543.75,"tags":["developer","team-lead","remote"],"metadata":{"lastLogin":"2024-01-15T08:30:00Z","preferences":{"theme":"dark","notifications":true}}}';
-    
-    setState(() {
-      _inputCodeController.text = sampleJson;
-      _outputCodeController.clear();
-      _errorMessage = '';
-    });
-    
-    // Show success message
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sample JSON loaded!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+    context.read<JsonFormatterBloc>().add(const LoadSampleJsonEvent());
+  }
+
+  void _toggleFullscreen(bool isInput) {
+    context.read<JsonFormatterBloc>().add(ToggleFullscreenEvent(isInput));
   }
 
   Widget _buildHighlightedTextField({
     required String hintText,
     bool readOnly = false,
     bool isInput = true,
+    required JsonFormatterState state,
   }) {
       var textField = Container(
         decoration: BoxDecoration(
@@ -237,10 +118,10 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             children: [
               IconButton(
                 onPressed: () => _toggleFullscreen(isInput),
-                icon: _isFullScreen ? const Icon(Icons.fullscreen_exit, size: 16) : const Icon(Icons.fullscreen, size: 16),
+                icon: (state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) ? const Icon(Icons.fullscreen_exit, size: 16) : const Icon(Icons.fullscreen, size: 16),
                 iconSize: 16,
                 padding: const EdgeInsets.all(4),
-                tooltip: _isFullScreen ?  'Exit full window' : 'Full window',
+                tooltip: (state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) ?  'Exit full window' : 'Full window',
                 constraints: const BoxConstraints(
                   minWidth: 24,
                   minHeight: 24,
@@ -280,16 +161,131 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFullscreenView(JsonFormatterState state) {
+    final isInputFullscreen = state is JsonFormatterLoaded && state.isFullscreenInput;
+    final isOutputFullscreen = state is JsonFormatterLoaded && state.isFullscreenOutput;
+    
     return Scaffold(
+      appBar: AppBar(
+        title: Text(isInputFullscreen ? 'Input JSON' : 'Output JSON'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          if (isInputFullscreen) ...[
+            IconButton(
+              icon: const Icon(Icons.content_paste),
+              onPressed: _pasteFromClipboard,
+              tooltip: 'Paste from Clipboard',
+            ),
+            IconButton(
+              icon: const Icon(Icons.clear_all),
+              onPressed: _clearAll,
+              tooltip: 'Clear All',
+            ),
+            IconButton(
+              icon: const Icon(Icons.code),
+              onPressed: _loadSampleJson,
+              tooltip: 'Load Sample JSON',
+            ),
+          ],
+          if (isOutputFullscreen) ...[
+            IconButton(
+              icon: const Icon(Icons.content_copy),
+              onPressed: _copyToClipboard,
+              tooltip: 'Copy to Clipboard',
+            ),
+          ],
+          IconButton(
+            icon: const Icon(Icons.fullscreen_exit),
+            onPressed: () => _toggleFullscreen(isInputFullscreen),
+            tooltip: 'Exit Fullscreen',
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isInputFullscreen) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _formatJson,
+                    icon: const Icon(Icons.format_align_left),
+                    label: const Text('Format'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _minifyJson,
+                    icon: const Icon(Icons.compress),
+                    label: const Text('Minify'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (state is JsonFormatterError) ...[
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  state.errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            Expanded(
+              child: _buildHighlightedTextField(
+                hintText: isInputFullscreen 
+                    ? 'Paste your JSON here...' 
+                    : 'Formatted JSON will appear here...',
+                readOnly: !isInputFullscreen,
+                isInput: isInputFullscreen,
+                state: state,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNormalView(JsonFormatterState state) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('JSON Formatter'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.content_paste),
+            onPressed: _pasteFromClipboard,
+            tooltip: 'Paste from Clipboard',
+          ),
+          IconButton(
+            icon: const Icon(Icons.clear_all),
+            onPressed: _clearAll,
+            tooltip: 'Clear All',
+          ),
+          IconButton(
+            icon: const Icon(Icons.code),
+            onPressed: _loadSampleJson,
+            tooltip: 'Load Sample JSON',
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Top - Input
-            if(!_isFullscreenOutput)
+            if(!(state is JsonFormatterLoaded && state.isFullscreenOutput))
             Expanded(
               flex: 2,
               child: Column(
@@ -304,6 +300,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                     child: _buildHighlightedTextField(
                       hintText: 'Paste your JSON here...',
                       isInput: true,
+                      state: state,
                     ),
                   ),
                 ],
@@ -311,7 +308,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             ),
             const SizedBox(height: 16),
             // Center - Buttons and Error
-            if(!(_isFullscreenInput || _isFullscreenOutput))
+            if(!(state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)))
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -340,25 +337,25 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                 ),
               ],
             ),
-            if (_errorMessage.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  _errorMessage,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-            if(!_isFullscreenOutput)
+            if (state is JsonFormatterError) ...[
+               const SizedBox(height: 16),
+               Container(
+                 padding: const EdgeInsets.all(8),
+                 decoration: BoxDecoration(
+                   color: Colors.red.shade100,
+                   borderRadius: BorderRadius.circular(4),
+                 ),
+                 child: Text(
+                   state.errorMessage,
+                   style: const TextStyle(color: Colors.red),
+                   textAlign: TextAlign.center,
+                 ),
+               ),
+             ],
+            if(!(state is JsonFormatterLoaded && state.isFullscreenOutput))
             const SizedBox(height: 16),
             // Bottom - Output
-            if(!_isFullscreenInput)
+            if(!(state is JsonFormatterLoaded && state.isFullscreenInput))
             Expanded(
               flex: 2,
               child: Column(
@@ -374,6 +371,7 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
                       hintText: 'Formatted JSON will appear here...',
                       readOnly: true,
                       isInput: false,
+                      state: state,
                     ),
                   ),
                 ],
@@ -381,6 +379,40 @@ class _JsonFormatterScreenState extends State<JsonFormatterScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<JsonFormatterBloc, JsonFormatterState>(
+      listener: (context, state) {
+        if (state is JsonFormatterLoaded) {
+          // Update controllers based on state
+          if (state.inputText != _inputCodeController.text) {
+            _inputCodeController.text = state.inputText;
+          }
+          if (state.outputText != _outputCodeController.text) {
+            _outputCodeController.text = state.outputText;
+          }
+        } else if (state is JsonFormatterClipboardSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<JsonFormatterBloc, JsonFormatterState>(
+        builder: (context, state) {
+          // Check if we're in fullscreen mode
+          if (state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) {
+            return _buildFullscreenView(state);
+          }
+          
+          return _buildNormalView(state);
+        },
       ),
     );
   }
