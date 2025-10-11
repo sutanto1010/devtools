@@ -62,7 +62,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
   }
 
   void _copyToClipboard() {
-    final output = _outputCodeController.text;
+    final output = _outputCodeController.fullText;
     context.read<JsonFormatterBloc>().add(CopyToClipboardEvent(output));
   }
 
