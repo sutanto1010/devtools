@@ -162,102 +162,8 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
     );
   }
 
-  Widget _buildFullscreenView(JsonFormatterState state) {
-    final isInputFullscreen = state is JsonFormatterLoaded && state.isFullscreenInput;
-    final isOutputFullscreen = state is JsonFormatterLoaded && state.isFullscreenOutput;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isInputFullscreen ? 'Input JSON' : 'Output JSON'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          if (isInputFullscreen) ...[
-            IconButton(
-              icon: const Icon(Icons.content_paste),
-              onPressed: _pasteFromClipboard,
-              tooltip: 'Paste from Clipboard',
-            ),
-            IconButton(
-              icon: const Icon(Icons.clear_all),
-              onPressed: _clearAll,
-              tooltip: 'Clear All',
-            ),
-            IconButton(
-              icon: const Icon(Icons.code),
-              onPressed: _loadSampleJson,
-              tooltip: 'Load Sample JSON',
-            ),
-          ],
-          if (isOutputFullscreen) ...[
-            IconButton(
-              icon: const Icon(Icons.content_copy),
-              onPressed: _copyToClipboard,
-              tooltip: 'Copy to Clipboard',
-            ),
-          ],
-          IconButton(
-            icon: const Icon(Icons.fullscreen_exit),
-            onPressed: () => _toggleFullscreen(isInputFullscreen),
-            tooltip: 'Exit Fullscreen',
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (isInputFullscreen) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _formatJson,
-                    icon: const Icon(Icons.format_align_left),
-                    label: const Text('Format'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _minifyJson,
-                    icon: const Icon(Icons.compress),
-                    label: const Text('Minify'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (state is JsonFormatterError) ...[
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  state.errorMessage,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            Expanded(
-              child: _buildCodeEditor(
-                hintText: isInputFullscreen 
-                    ? 'Paste your JSON here...' 
-                    : 'Formatted JSON will appear here...',
-                readOnly: !isInputFullscreen,
-                isInput: true,
-                state: state,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildNormalView(JsonFormatterState state) {
+  Widget _buildView(JsonFormatterState state) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('JSON Formatter'),
@@ -406,13 +312,8 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
         }
       },
       child: BlocBuilder<JsonFormatterBloc, JsonFormatterState>(
-        builder: (context, state) {
-          // Check if we're in fullscreen mode
-          if (state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) {
-            return _buildFullscreenView(state);
-          }
-          
-          return _buildNormalView(state);
+        builder: (context, state) {          
+          return _buildView(state);
         },
       ),
     );
