@@ -20,9 +20,9 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
     try {
       final input = event.input.trim();
       if (input.isEmpty) {
-        emit(_getCurrentState().copyWith(
+        emit(JsonFormatterError(
+          inputText: event.input,
           errorMessage: 'Please enter JSON to format',
-          outputText: '',
         ));
         return;
       }
@@ -37,9 +37,8 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
         errorMessage: '',
       ));
     } catch (e) {
-      emit(_getCurrentState().copyWith(
+      emit(JsonFormatterError(
         inputText: event.input,
-        outputText: '',
         errorMessage: 'Invalid JSON: ${e.toString()}',
       ));
     }
@@ -49,9 +48,9 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
     try {
       final input = event.input.trim();
       if (input.isEmpty) {
-        emit(_getCurrentState().copyWith(
+        emit(JsonFormatterError(
+          inputText: event.input,
           errorMessage: 'Please enter JSON to minify',
-          outputText: '',
         ));
         return;
       }
@@ -65,9 +64,8 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
         errorMessage: '',
       ));
     } catch (e) {
-      emit(_getCurrentState().copyWith(
+      emit(JsonFormatterError(
         inputText: event.input,
-        outputText: '',
         errorMessage: 'Invalid JSON: ${e.toString()}',
       ));
     }
@@ -90,12 +88,14 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
           errorMessage: '',
         ));
       } else {
-        emit(_getCurrentState().copyWith(
+        emit(JsonFormatterError(
+          inputText: _getCurrentState().inputText,
           errorMessage: 'Clipboard is empty',
         ));
       }
     } catch (e) {
-      emit(_getCurrentState().copyWith(
+      emit(JsonFormatterError(
+        inputText: _getCurrentState().inputText,
         errorMessage: 'Failed to paste from clipboard',
       ));
     }
@@ -103,7 +103,8 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
 
   void _onCopyToClipboard(CopyToClipboardEvent event, Emitter<JsonFormatterState> emit) async {
     if (event.output.isEmpty) {
-      emit(_getCurrentState().copyWith(
+      emit(JsonFormatterError(
+        inputText: _getCurrentState().inputText,
         errorMessage: 'No formatted JSON to copy',
       ));
       return;
@@ -111,9 +112,14 @@ class JsonFormatterBloc extends Bloc<JsonFormatterEvent, JsonFormatterState> {
 
     try {
       await Clipboard.setData(ClipboardData(text: event.output));
-      // Note: Success message will be handled in the UI layer via BlocListener
+      emit(JsonFormatterClipboardSuccess(
+        inputText: _getCurrentState().inputText,
+        outputText: _getCurrentState().outputText,
+        message: 'Copied to clipboard successfully',
+      ));
     } catch (e) {
-      emit(_getCurrentState().copyWith(
+      emit(JsonFormatterError(
+        inputText: _getCurrentState().inputText,
         errorMessage: 'Failed to copy to clipboard',
       ));
     }
