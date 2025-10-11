@@ -49,6 +49,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
 
   void _minifyJson() {
     final input = _inputCodeController.text;
+    _outputCodeController.clear();
     context.read<JsonFormatterBloc>().add(MinifyJsonEvent(input));
   }
 
@@ -73,7 +74,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
     context.read<JsonFormatterBloc>().add(ToggleFullscreenEvent(isInput));
   }
 
-  Widget _buildHighlightedTextField({
+  Widget _buildCodeEditor({
     required String hintText,
     bool readOnly = false,
     bool isInput = true,
@@ -241,12 +242,12 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
               const SizedBox(height: 16),
             ],
             Expanded(
-              child: _buildHighlightedTextField(
+              child: _buildCodeEditor(
                 hintText: isInputFullscreen 
                     ? 'Paste your JSON here...' 
                     : 'Formatted JSON will appear here...',
                 readOnly: !isInputFullscreen,
-                isInput: isInputFullscreen,
+                isInput: true,
                 state: state,
               ),
             ),
@@ -297,7 +298,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                   ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: _buildHighlightedTextField(
+                    child: _buildCodeEditor(
                       hintText: 'Paste your JSON here...',
                       isInput: true,
                       state: state,
@@ -367,7 +368,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                   ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: _buildHighlightedTextField(
+                    child: _buildCodeEditor(
                       hintText: 'Formatted JSON will appear here...',
                       readOnly: true,
                       isInput: false,
