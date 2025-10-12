@@ -297,6 +297,71 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
     });
   }
 
+  void _loadSample() {
+    setState(() {
+      if (_isXmlToJson) {
+        // Sample XML data
+        _inputController.text = '''<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+  <book id="1" category="fiction">
+    <title lang="en">The Great Gatsby</title>
+    <author>F. Scott Fitzgerald</author>
+    <year>1925</year>
+    <price currency="USD">12.99</price>
+    <description>A classic American novel set in the Jazz Age</description>
+  </book>
+  <book id="2" category="science">
+    <title lang="en">A Brief History of Time</title>
+    <author>Stephen Hawking</author>
+    <year>1988</year>
+    <price currency="USD">15.99</price>
+    <description>An exploration of cosmology and theoretical physics</description>
+  </book>
+</bookstore>''';
+      } else {
+        // Sample JSON data
+        _inputController.text = '''{
+  "bookstore": {
+    "book": [
+      {
+        "@id": "1",
+        "@category": "fiction",
+        "title": {
+          "@lang": "en",
+          "#text": "The Great Gatsby"
+        },
+        "author": "F. Scott Fitzgerald",
+        "year": "1925",
+        "price": {
+          "@currency": "USD",
+          "#text": "12.99"
+        },
+        "description": "A classic American novel set in the Jazz Age"
+      },
+      {
+        "@id": "2",
+        "@category": "science",
+        "title": {
+          "@lang": "en",
+          "#text": "A Brief History of Time"
+        },
+        "author": "Stephen Hawking",
+        "year": "1988",
+        "price": {
+          "@currency": "USD",
+          "#text": "15.99"
+        },
+        "description": "An exploration of cosmology and theoretical physics"
+      }
+    ]
+  }
+}''';
+      }
+      _outputController.clear();
+      _errorMessage = '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -400,6 +465,12 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
                   onPressed: _swapConversion,
                   icon: const Icon(Icons.swap_horiz),
                   label: const Text('Swap'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _loadSample,
+                  icon: const Icon(Icons.code),
+                  label: const Text('Sample'),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
