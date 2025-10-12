@@ -30,7 +30,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin, ClipboardListener {
-  final PubSubService _pubSub = PubSubService();
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -67,7 +66,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     super.initState();
     // Add 1 to length for the plus button tab
     _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-    _tabController.addListener(onTabChanged);
     _loadRecentlyUsedTools();
     // init system tray
     _systemTrayManager.initSystemTray();
@@ -100,7 +98,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
 
   @override
   void dispose() {
-    _tabController.removeListener(onTabChanged);
     _searchController.dispose();
     _tabController.dispose();
     clipboardWatcher.removeListener(this);
@@ -168,7 +165,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     // Update tab controller - add 1 for plus button
     _tabController.dispose();
     _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-    _tabController.addListener(onTabChanged);
     
     // Switch to the new tab
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -214,8 +210,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
       // _tabController.addListener(onTabChanged);
       // Adjust current tab index if necessary
       _tabController.index = currentIndex > index ? currentIndex - 1 : currentIndex;
-      // Publish tab closed event
-      _pubSub.publish('on_tab_closed', index);
     }
   }
 
@@ -243,16 +237,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
     
     // Only close if user confirmed
     if (shouldClose == true) {
+      final temp = _tabWidgets[keepIndex];
+      _tabWidgets.clear();
       setState(() {
         final tabToKeep = _openTabs[keepIndex];
         _openTabs.clear();
         _openTabs.add(tabToKeep);
+        _tabWidgets.add(temp);
       });
       
       // Update tab controller - add 1 for plus button
       _tabController.dispose();
       _tabController = TabController(length: _openTabs.length + 1, vsync: this, animationDuration: Duration.zero);
-      _tabController.addListener(onTabChanged);
       
       // Switch to the kept tab (which is now at index 0)
       _tabController.index = 0;
@@ -408,12 +404,5 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Clip
         ),
       ],
     );
-  }
-
-  void onTabChanged() {
-    print("onTabChanged: ${_tabController.index}");
-    setState(() {
-      _currentTabIndex = _tabController.index;
-    });
   }
 }
