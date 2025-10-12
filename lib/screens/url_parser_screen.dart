@@ -63,7 +63,7 @@ class _UrlParserScreenState extends State<UrlParserScreen> {
         'scheme': uri.scheme.isNotEmpty ? uri.scheme : null,
         'authority': _buildAuthorityTree(uri),
         'path': _buildPathTree(uri.path),
-        'query': _buildQueryTree(uri.queryParameters),
+        'query': _buildQueryTree(Map<String, String>.from(uri.queryParameters)),
         'fragment': uri.fragment.isNotEmpty ? uri.fragment : null,
       },
       'analysis': {
@@ -146,13 +146,14 @@ class _UrlParserScreenState extends State<UrlParserScreen> {
   }
 
   void _removeNullValues(Map<String, dynamic> map) {
-    // First pass: remove null values
-    map.removeWhere((key, value) => value == null);
-    
-    // Second pass: recursively clean nested maps and collect empty ones
+    // Create a list of keys to remove to avoid concurrent modification
     final keysToRemove = <String>[];
+    
+    // First pass: identify null values and empty nested maps
     map.forEach((key, value) {
-      if (value is Map<String, dynamic>) {
+      if (value == null) {
+        keysToRemove.add(key);
+      } else if (value is Map<String, dynamic>) {
         _removeNullValues(value);
         if (value.isEmpty) {
           keysToRemove.add(key);
@@ -160,7 +161,7 @@ class _UrlParserScreenState extends State<UrlParserScreen> {
       }
     });
     
-    // Third pass: remove empty maps
+    // Second pass: remove identified keys
     for (final key in keysToRemove) {
       map.remove(key);
     }
