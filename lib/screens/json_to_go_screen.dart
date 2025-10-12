@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/json.dart';
+import 'package:highlight/languages/go.dart';
+import 'package:flutter_highlight/themes/github.dart';
 
 class JsonToGoScreen extends StatefulWidget {
   const JsonToGoScreen({super.key});
@@ -10,8 +14,6 @@ class JsonToGoScreen extends StatefulWidget {
 }
 
 class _JsonToGoScreenState extends State<JsonToGoScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  final TextEditingController _outputController = TextEditingController();
   final TextEditingController _structNameController = TextEditingController(text: 'MyStruct');
   final TextEditingController _packageNameController = TextEditingController(text: 'main');
   String _errorMessage = '';
@@ -23,6 +25,14 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
   bool _useSnakeCase = false;
   bool _generateComments = true;
   bool _generateValidation = false;
+  final CodeController _jsonController = CodeController(
+    text: '',
+    language: json,
+  );
+  final CodeController _goController = CodeController(
+    text: '',
+    language: go,
+  );
 
   @override
   void initState() {
@@ -216,11 +226,11 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
   void _convertJson() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _goController.clear();
     });
 
     try {
-      final input = _inputController.text.trim();
+      final input = _jsonController.text.trim();
       if (input.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter JSON to convert';
@@ -276,7 +286,7 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
       buffer.write(goStruct);
       
       setState(() {
-        _outputController.text = buffer.toString();
+        _goController.text = buffer.toString();
       });
     } catch (e) {
       setState(() {
@@ -305,14 +315,14 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
 
   void _clearAll() {
     setState(() {
-      _inputController.clear();
-      _outputController.clear();
+      _jsonController.clear();
+      _goController.clear();
       _errorMessage = '';
     });
   }
 
   void _copyToClipboard() async {
-    final output = _outputController.text;
+    final output = _goController.text;
     if (output.isEmpty) {
       setState(() {
         _errorMessage = 'No Go struct to copy';
@@ -370,7 +380,7 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
 }''';
     
     setState(() {
-      _inputController.text = sampleJson;
+      _jsonController.text = sampleJson;
       _errorMessage = '';
     });
   }
@@ -397,26 +407,15 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
     );
   }
 
-  Widget _buildExpandedTextField({
-    required TextEditingController controller,
+  Widget _buildCodeEditor({
+    required CodeController controller,
     required String hintText,
-    bool readOnly = false,
   }) {
     return Expanded(
-      child: TextField(
-        controller: controller,
-        maxLines: null,
-        expands: true,
-        readOnly: readOnly,
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          hintText: hintText,
-          contentPadding: const EdgeInsets.all(12),
-        ),
-        textAlignVertical: TextAlignVertical.top,
-        style: const TextStyle(
-          fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, Consolas, Courier New, monospace',
-          fontSize: 14,
+      child: SingleChildScrollView(
+        child: CodeTheme(
+         data: CodeThemeData(styles: githubTheme),
+          child: CodeField(controller: controller),
         ),
       ),
     );
@@ -443,8 +442,8 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
                   const SizedBox(height: 8),
                   Expanded(
                     flex: 3,
-                    child: _buildExpandedTextField(
-                      controller: _inputController,
+                    child: _buildCodeEditor(
+                      controller: _jsonController,
                       hintText: 'Paste your JSON here...',
                     ),
                   ),
@@ -572,10 +571,9 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  _buildExpandedTextField(
-                    controller: _outputController,
+                  _buildCodeEditor(
+                    controller: _goController,
                     hintText: 'Go struct will appear here...',
-                    readOnly: true,
                   ),
                 ],
               ),
@@ -605,8 +603,8 @@ class _JsonToGoScreenState extends State<JsonToGoScreen> {
 
   @override
   void dispose() {
-    _inputController.dispose();
-    _outputController.dispose();
+    _jsonController.dispose();
+    _goController.dispose();
     _structNameController.dispose();
     _packageNameController.dispose();
     super.dispose();
