@@ -136,18 +136,20 @@ class _UriEncoderScreenState extends State<UriEncoderScreen> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _processUri,
                   icon: Icon(_isEncoding ? Icons.lock : Icons.lock_open),
                   label: Text(_isEncoding ? 'Encode' : 'Decode'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _switchMode,
                   icon: const Icon(Icons.swap_vert),
                   label: const Text('Switch Mode'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear_all),

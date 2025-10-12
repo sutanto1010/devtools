@@ -365,48 +365,18 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Tooltip(
-                          message: 'Paste from clipboard',
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                              ),
-                            ),
-                            child: IconButton(
-                              onPressed: _pasteToInput,
-                              icon: const Icon(Icons.paste, size: 16),
-                              iconSize: 16,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                            ),
-                          ),
+                        IconButton(
+                          onPressed: _pasteToInput,
+                          icon: const Icon(Icons.paste, size: 16),
+                          iconSize: 16,
+                          tooltip: 'Paste from clipboard',
                         ),
                         const SizedBox(width: 4),
-                        Tooltip(
-                          message: 'Copy to clipboard',
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                              ),
-                            ),
-                            child: IconButton(
-                              onPressed: _copyInputToClipboard,
-                              icon: const Icon(Icons.copy, size: 16),
-                              iconSize: 16,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                            ),
-                          ),
+                        IconButton(
+                          onPressed: _copyInputToClipboard,
+                          icon: const Icon(Icons.copy, size: 16),
+                          iconSize: 16,
+                          tooltip: 'Copy to clipboard',
                         ),
                       ],
                     ),
@@ -418,18 +388,20 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
             
             // Action Buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _isXmlToJson ? _convertXmlToJson : _convertJsonToXml,
                   icon: const Icon(Icons.transform),
                   label: Text(_isXmlToJson ? 'Convert to JSON' : 'Convert to XML'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _swapConversion,
                   icon: const Icon(Icons.swap_horiz),
                   label: const Text('Swap'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
@@ -480,26 +452,11 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Tooltip(
-                      message: 'Copy to clipboard',
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: _copyOutputToClipboard,
-                          icon: const Icon(Icons.copy, size: 16),
-                          iconSize: 16,
-                          constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
-                          ),
-                        ),
-                      ),
+                    child: IconButton(
+                      onPressed: _copyOutputToClipboard,
+                      icon: const Icon(Icons.copy, size: 16),
+                      tooltip: 'Copy to clipboard',
+                      iconSize: 16,
                     ),
                   ),
                 ],

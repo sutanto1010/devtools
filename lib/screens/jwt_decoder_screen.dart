@@ -172,13 +172,14 @@ class _JwtDecoderScreenState extends State<JwtDecoderScreen> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _decodeJwt,
                   icon: const Icon(Icons.lock_open),
                   label: const Text('Decode JWT'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
