@@ -23,6 +23,23 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
   bool _sortAttributes = false;
   int _indentSize = 2;
 
+  // Sample XML for demonstration
+  static const String _sampleXml = '''<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+  <book id="1" category="fiction">
+    <title lang="en">Great Gatsby</title>
+    <author>F. Scott Fitzgerald</author>
+    <year>1925</year>
+    <price currency="USD">10.99</price>
+  </book>
+  <book id="2" category="fiction">
+    <title lang="en">1984</title>
+    <author>George Orwell</author>
+    <year>1949</year>
+    <price currency="USD">8.99</price>
+  </book>
+</bookstore>''';
+
   void _formatXml() {
     setState(() {
       _errorMessage = '';
@@ -138,6 +155,14 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
         _successMessage = '';
       });
     }
+  }
+
+  void _loadSampleXml() {
+    setState(() {
+      _inputController.text = _sampleXml;
+      _errorMessage = '';
+      _successMessage = 'Sample XML loaded';
+    });
   }
 
   void _copyOutput() {
@@ -309,6 +334,7 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const SizedBox(width: 4),
                           IconButton(
                             onPressed: _pasteFromClipboard,
                             icon: const Icon(Icons.content_paste, size: 18),
@@ -383,27 +409,36 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              alignment: WrapAlignment.spaceEvenly,
+              alignment: WrapAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _formatXml,
                   icon: const Icon(Icons.format_align_left),
                   label: const Text('Format'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _minifyXml,
                   icon: const Icon(Icons.compress),
                   label: const Text('Minify'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _validateXml,
                   icon: const Icon(Icons.check_circle),
                   label: const Text('Validate'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
                   label: const Text('Clear'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _loadSampleXml,
+                  icon: const Icon(Icons.science),
+                  label: const Text('Sample'),
                 ),
               ],
             ),
