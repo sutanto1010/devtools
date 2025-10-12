@@ -161,57 +161,19 @@ class _Base64ScreenState extends State<Base64Screen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (showPaste)
-                Tooltip(
-                  message: 'Paste from clipboard',
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _pasteFromClipboard,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.content_paste,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
+                IconButton(
+                  onPressed: _pasteFromClipboard,
+                  icon: const Icon(Icons.content_paste, size: 16),
+                  iconSize: 16,
+                  tooltip: 'Paste from clipboard',
                 ),
               if (showPaste && showCopy) const SizedBox(width: 4),
               if (showCopy)
-                Tooltip(
-                  message: 'Copy to clipboard',
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _copyToClipboard(controller.text),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.content_copy,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
+                IconButton(
+                  onPressed: () => _copyToClipboard(controller.text),
+                  icon: const Icon(Icons.content_copy, size: 16),
+                  iconSize: 16,
+                  tooltip: 'Copy to clipboard',
                 ),
             ],
           ),
@@ -262,18 +224,20 @@ class _Base64ScreenState extends State<Base64Screen> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _processBase64,
                   icon: Icon(_isEncoding ? Icons.lock : Icons.lock_open),
                   label: Text(_isEncoding ? 'Encode' : 'Decode'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _switchMode,
                   icon: const Icon(Icons.swap_vert),
                   label: const Text('Switch'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),

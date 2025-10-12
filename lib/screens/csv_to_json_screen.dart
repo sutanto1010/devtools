@@ -262,13 +262,14 @@ class _CsvToJsonScreenState extends State<CsvToJsonScreen> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _convertCsvToJson,
                   icon: const Icon(Icons.transform),
                   label: const Text('Convert to JSON'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),

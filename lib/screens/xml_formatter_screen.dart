@@ -406,10 +406,8 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
             const SizedBox(height: 16),
             
             // Action Buttons
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _formatXml,
