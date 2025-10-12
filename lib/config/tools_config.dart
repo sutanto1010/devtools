@@ -330,6 +330,8 @@ class ToolsConfig {
         return HtmlViewerScreen(key: key);
       case 'websocket_tester':
         return WebSocketTesterScreen(key: key);
+      case 'json_to_go':
+        return JsonToGoScreen(key: key);
       default:
         final tool = allTools.firstWhere((tool) => tool['id'] == toolId);
         return tool['screen'];
