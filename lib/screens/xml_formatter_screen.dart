@@ -290,53 +290,51 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    child: CodeTheme(
-                      data: CodeThemeData(styles: githubTheme),
-                      child: CodeField(controller: _inputController),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      child: CodeTheme(
+                        data: CodeThemeData(styles: githubTheme),
+                        child: CodeField(controller: _inputController),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          onPressed: _pasteFromClipboard,
-                          icon: const Icon(Icons.content_paste, size: 18),
-                          iconSize: 18,
-                          tooltip: 'Paste from clipboard',
-                          constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: _pasteFromClipboard,
+                            icon: const Icon(Icons.content_paste, size: 18),
+                            iconSize: 18,
+                            tooltip: 'Paste from clipboard',
+                            padding: const EdgeInsets.all(4),
                           ),
-                          padding: const EdgeInsets.all(4),
-                        ),
-                        const SizedBox(width: 4),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _inputController.clear();
-                              _errorMessage = '';
-                              _successMessage = '';
-                            });
-                          },
-                          icon: const Icon(Icons.clear, size: 18),
-                          iconSize: 18,
-                          tooltip: 'Clear input',
-                          constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
+                          const SizedBox(width: 4),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _inputController.clear();
+                                _errorMessage = '';
+                                _successMessage = '';
+                              });
+                            },
+                            icon: const Icon(Icons.clear, size: 18),
+                            iconSize: 18,
+                            tooltip: 'Clear input',
+                            padding: const EdgeInsets.all(4),
                           ),
-                          padding: const EdgeInsets.all(4),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -465,41 +463,34 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    child: CodeTheme(
-                      data: CodeThemeData(styles: githubTheme),
-                      child: CodeField(controller: _outputController),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      child: CodeTheme(
+                        data: CodeThemeData(styles: githubTheme),
+                        child: CodeField(controller: _outputController),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Tooltip(
-                      message: 'Copy to clipboard',
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                          ),
-                        ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Tooltip(
+                        message: 'Copy to clipboard',
                         child: IconButton(
                           onPressed: _copyOutput,
                           icon: const Icon(Icons.content_copy, size: 18),
                           iconSize: 18,
-                          constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
-                          ),
                           padding: const EdgeInsets.all(4),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
