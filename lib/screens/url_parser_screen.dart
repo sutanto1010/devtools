@@ -174,6 +174,30 @@ class _UrlParserScreenState extends State<UrlParserScreen> {
     );
   }
 
+  Future<void> _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null && clipboardData!.text!.isNotEmpty) {
+        setState(() {
+          _inputController.text = clipboardData.text!;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pasted from clipboard')),
+        );
+        // Automatically parse the URL after pasting
+        _parseUrl();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Clipboard is empty')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to paste from clipboard')),
+      );
+    }
+  }
+
   void _expandAllNodes(dynamic data, List<String> path) {
     final pathKey = path.join('.');
     _expandedNodes[pathKey] = true;
@@ -223,14 +247,48 @@ class _UrlParserScreenState extends State<UrlParserScreen> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: _inputController,
-                      decoration: const InputDecoration(
-                        hintText: 'https://example.com:8080/path?param=value#fragment',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                      onSubmitted: (_) => _parseUrl(),
+                    Stack(
+                      children: [
+                        TextField(
+                          controller: _inputController,
+                          decoration: const InputDecoration(
+                            hintText: 'https://example.com:8080/path?param=value#fragment',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 3,
+                          onSubmitted: (_) => _parseUrl(),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: _pasteFromClipboard,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.content_paste,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     Row(
