@@ -15,7 +15,39 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
   final TextEditingController _outputController = TextEditingController();
   String _errorMessage = '';
   bool _isYamlToJson = true;
-  bool _prettyPrint = true;
+
+  // Sample data constants
+  static const String _sampleYaml = '''name: John Doe
+age: 30
+email: john.doe@example.com
+address:
+  street: 123 Main St
+  city: New York
+  country: USA
+hobbies:
+  - reading
+  - swimming
+  - coding
+active: true
+balance: 1250.75''';
+
+  static const String _sampleJson = '''{
+  "name": "Jane Smith",
+  "age": 28,
+  "email": "jane.smith@example.com",
+  "address": {
+    "street": "456 Oak Ave",
+    "city": "Los Angeles",
+    "country": "USA"
+  },
+  "hobbies": [
+    "photography",
+    "hiking",
+    "cooking"
+  ],
+  "active": true,
+  "balance": 2340.50
+}''';
 
   void _convertYamlToJson() {
     setState(() {
@@ -36,12 +68,9 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
       final jsonData = _yamlToJson(yamlData);
       
       String jsonString;
-      if (_prettyPrint) {
-        const encoder = JsonEncoder.withIndent('  ');
-        jsonString = encoder.convert(jsonData);
-      } else {
-        jsonString = jsonEncode(jsonData);
-      }
+      const encoder = JsonEncoder.withIndent('  ');
+      jsonString = encoder.convert(jsonData);
+     
       
       setState(() {
         _outputController.text = jsonString;
@@ -214,6 +243,14 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
     });
   }
 
+  void _loadSample() {
+    setState(() {
+      _inputController.text = _isYamlToJson ? _sampleYaml : _sampleJson;
+      _outputController.clear();
+      _errorMessage = '';
+    });
+  }
+
   void _copyToClipboard(String text, String type) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
@@ -288,25 +325,6 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Options Row
-            Row(
-              children: [
-                Expanded(
-                  child: CheckboxListTile(
-                    title: const Text('Pretty print JSON'),
-                    subtitle: const Text('Format JSON with indentation'),
-                    value: _prettyPrint,
-                    onChanged: _isYamlToJson ? (value) {
-                      setState(() {
-                        _prettyPrint = value ?? true;
-                      });
-                    } : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
             // Input Section
             Text(
               _isYamlToJson ? 'Input YAML:' : 'Input JSON:',
@@ -339,6 +357,12 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
                   onPressed: _swapConversion,
                   icon: const Icon(Icons.swap_horiz),
                   label: const Text('Swap'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _loadSample,
+                  icon: const Icon(Icons.file_copy),
+                  label: const Text('Sample'),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
