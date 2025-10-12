@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
 import 'dart:convert';
-
+import 'package:highlight/languages/yaml.dart';
+import 'package:highlight/languages/json.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:flutter_highlight/themes/github.dart';
 class YamlToJsonScreen extends StatefulWidget {
   const YamlToJsonScreen({super.key});
 
@@ -15,6 +18,16 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
   final TextEditingController _outputController = TextEditingController();
   String _errorMessage = '';
   bool _isYamlToJson = true;
+  bool isFullscreenInput = false;
+  bool isFullscreenOutput = false;
+  final CodeController _jsonCodeController = CodeController(
+    text: '',
+    language: json,
+  );
+  final CodeController _yamlCodeController = CodeController(
+    text: '',
+    language: yaml,
+  );
 
   // Sample data constants
   static const String _sampleYaml = '''name: John Doe
@@ -52,11 +65,11 @@ balance: 1250.75''';
   void _convertYamlToJson() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _jsonCodeController.clear();
     });
 
     try {
-      final input = _inputController.text.trim();
+      final input = _yamlCodeController.fullText;
       if (input.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter YAML data to convert';
@@ -73,7 +86,7 @@ balance: 1250.75''';
      
       
       setState(() {
-        _outputController.text = jsonString;
+        _jsonCodeController.text = jsonString;
       });
     } catch (e) {
       setState(() {
@@ -85,11 +98,11 @@ balance: 1250.75''';
   void _convertJsonToYaml() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _yamlCodeController.clear();
     });
 
     try {
-      final input = _inputController.text.trim();
+      final input = _jsonCodeController.fullText;
       if (input.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter JSON data to convert';
@@ -101,7 +114,7 @@ balance: 1250.75''';
       final yamlString = _jsonToYaml(jsonData);
       
       setState(() {
-        _outputController.text = yamlString;
+        _yamlCodeController.text = yamlString;
       });
     } catch (e) {
       setState(() {
@@ -227,8 +240,8 @@ balance: 1250.75''';
 
   void _clearAll() {
     setState(() {
-      _inputController.clear();
-      _outputController.clear();
+      _yamlCodeController.clear();
+      _jsonCodeController.clear();
       _errorMessage = '';
     });
   }
@@ -245,8 +258,9 @@ balance: 1250.75''';
 
   void _loadSample() {
     setState(() {
-      _inputController.text = _isYamlToJson ? _sampleYaml : _sampleJson;
-      _outputController.clear();
+      final inputCodeCtrl = _isYamlToJson ? _yamlCodeController : _jsonCodeController;
+      inputCodeCtrl.clear();
+      inputCodeCtrl.text = _isYamlToJson ? _sampleYaml : _sampleJson;
       _errorMessage = '';
     });
   }
@@ -272,23 +286,39 @@ balance: 1250.75''';
     }
   }
 
-  Widget _buildTextFieldWithOverlay({
+  Widget _buildCodeEditor({
     required TextEditingController controller,
     required String hintText,
     required bool isInput,
   }) {
+    var codeCtl = _jsonCodeController;
+    if (_isYamlToJson){
+      if (isInput) {
+        codeCtl = _yamlCodeController;
+      }else{
+        codeCtl = _jsonCodeController;
+      }
+    }else{
+      if (isInput) {
+        codeCtl = _jsonCodeController;
+      }else{
+        codeCtl = _yamlCodeController;
+      }
+    }
     return Stack(
       children: [
-        TextField(
-          controller: controller,
-          maxLines: null,
-          expands: true,
-          readOnly: !isInput,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            hintText: hintText,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
           ),
-          textAlignVertical: TextAlignVertical.top,
+          child: SingleChildScrollView(
+            child: CodeTheme(
+              data: CodeThemeData(styles: githubTheme),
+              child: CodeField(controller: codeCtl, key: UniqueKey(),),
+            ),
+          ),
         ),
         Positioned(
           top: 8,
@@ -333,7 +363,7 @@ balance: 1250.75''';
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: _buildTextFieldWithOverlay(
+              child: _buildCodeEditor(
                 controller: _inputController,
                 hintText: _isYamlToJson 
                     ? 'Paste your YAML data here...' 
@@ -396,7 +426,7 @@ balance: 1250.75''';
             const SizedBox(height: 8),
             Expanded(
               flex: 2,
-              child: _buildTextFieldWithOverlay(
+              child: _buildCodeEditor(
                 controller: _outputController,
                 hintText: _isYamlToJson 
                     ? 'Converted JSON will appear here...' 
@@ -408,6 +438,15 @@ balance: 1250.75''';
         ),
       ),
     );
+  }
+  void  _toggleFullscreen(bool isInput) {
+    setState(() {
+      if (isInput) {
+        isFullscreenInput = !isFullscreenInput;
+      } else {
+        isFullscreenOutput = !isFullscreenOutput;
+      }
+    });
   }
 
   @override
