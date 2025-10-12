@@ -260,47 +260,18 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (isInput)
-                Tooltip(
-                  message: 'Paste from clipboard',
-                  child: Material(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(4),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(4),
-                      onTap: _pasteFromClipboard,
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          Icons.paste,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.paste, size: 16),
+                  tooltip: 'Paste from clipboard',
+                  iconSize: 16,
+                  onPressed: _pasteFromClipboard,
                 ),
               if (isInput) const SizedBox(width: 4),
-              Tooltip(
-                message: isInput ? 'Copy input' : 'Copy output',
-                child: Material(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(4),
-                    onTap: () => _copyToClipboard(
-                      controller.text,
-                      isInput ? 'Input' : 'Output',
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.copy,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 16),
+                tooltip: 'Copy to clipboard',
+                iconSize: 16,
+                onPressed: () => _copyToClipboard(controller.text, _isYamlToJson ? 'YAML' : 'JSON'),
               ),
             ],
           ),
@@ -356,18 +327,20 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
             
             // Action Buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _isYamlToJson ? _convertYamlToJson : _convertJsonToYaml,
                   icon: const Icon(Icons.transform),
                   label: Text(_isYamlToJson ? 'Convert to JSON' : 'Convert to YAML'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _swapConversion,
                   icon: const Icon(Icons.swap_horiz),
                   label: const Text('Swap'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
@@ -376,7 +349,6 @@ class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
             // Error Message
             if (_errorMessage.isNotEmpty)
               Container(
