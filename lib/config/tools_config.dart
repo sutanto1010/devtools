@@ -311,7 +311,7 @@ class ToolsConfig {
       case 'regex_tester':
         return RegexTesterScreen(key: key);
       case 'screenshot':
-        return ScreenshotScreen(toolParam: toolParam, key: UniqueKey());
+        return ScreenshotScreen(toolParam: toolParam, key: key);
       case 'basic_auth_generator':
         return BasicAuthScreen(key: key);
       case 'chmod_calculator':

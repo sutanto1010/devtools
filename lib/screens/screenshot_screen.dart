@@ -28,7 +28,7 @@ class ScreenshotScreen extends StatefulWidget {
   }
   var isCapturing = false;
 
-  final String? toolParam;
+  String? toolParam;
   Uint8List? imageData;
 
   @override
@@ -102,6 +102,7 @@ class _ScreenshotScreenState extends State<ScreenshotScreen> {
          _showSnackBar('Screenshot saved to clipboard!');
       }
       // await HomePage.showAndFocusWindow();
+      widget.toolParam = "";
     }
   }
 
