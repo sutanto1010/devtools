@@ -258,77 +258,78 @@ class ToolsConfig {
   ];
 
   static Widget createScreen(String toolId, String? toolParam) {
+    final key = GlobalKey();
     switch (toolId) {
       case 'json_formatter':
-        return JsonFormatterScreen(key: UniqueKey());
+        return JsonFormatterScreen(key: key);
       case 'xml_formatter':
-        return const XmlFormatterScreen();
+        return XmlFormatterScreen(key: key);
       case 'yaml_formatter':
-        return const YamlFormatterScreen();
+        return YamlFormatterScreen(key: key);
       case 'csv_to_json':
-        return const CsvToJsonScreen();
+        return CsvToJsonScreen(key: key);
       case 'csv_explorer':
-        return const CsvExplorerScreen();
+        return CsvExplorerScreen(key: key);
       case 'xml_to_json':
-        return const XmlToJsonScreen();
+        return XmlToJsonScreen(key: key);
       case 'yaml_to_json':
-        return const YamlToJsonScreen();
+        return YamlToJsonScreen(key: key);
       case 'json_explorer':
-        return const JsonExplorerScreen(); 
+        return JsonExplorerScreen(key: key); 
       case 'base64_encoder':
-        return const Base64Screen();
+        return Base64Screen(key: key);
       case 'hex_to_ascii':
-        return const HexToAsciiScreen();
+        return HexToAsciiScreen(key: key);
       case 'gpg_encryption':
-        return const GpgScreen();
+        return GpgScreen(key: key);
       case 'symmetric_encryption':
-        return const SymmetricEncryptionScreen();
+        return SymmetricEncryptionScreen(key: key);
       case 'jwt_decoder':
-        return const JwtDecoderScreen();
+        return JwtDecoderScreen(key: key);
       case 'dns_scanner':
-        return const DnsScannerScreen();
+        return DnsScannerScreen(key: key);
       case 'host_scanner':
-        return const HostScannerScreen();
+        return HostScannerScreen(key: key);
       case 'redis_client':
-        return const RedisClientScreen();
+        return RedisClientScreen(key: key);
       case 'kafka_client':
-        return const KafkaClientScreen();
+        return KafkaClientScreen(key: key);
       case 'unit_converter':
-        return const UnitConverterScreen();
+        return UnitConverterScreen(key: key);
       case 'uuid_generator':
-        return const UuidScreen();
+        return UuidScreen(key: key);
       case 'url_parser':
-        return const UrlParserScreen();
+        return UrlParserScreen(key: key);
       case 'cron_expression':
-        return const CronExpressionScreen();
+        return CronExpressionScreen(key: key);
       case 'color_picker':
-        return const ColorPickerScreen();
+        return ColorPickerScreen(key: key);
       case 'diff_checker':
-        return const DiffCheckerScreen();
+        return DiffCheckerScreen(key: key);
       case 'hash_generator':
-        return const HashScreen();
+        return HashScreen(key: key);
       case 'regex_tester':
-        return const RegexTesterScreen();
+        return RegexTesterScreen(key: key);
       case 'screenshot':
         return ScreenshotScreen(toolParam: toolParam, key: UniqueKey());
       case 'basic_auth_generator':
-        return const BasicAuthScreen();
+        return BasicAuthScreen(key: key);
       case 'chmod_calculator':
-        return const ChmodCalculatorScreen();
+        return ChmodCalculatorScreen(key: key); 
       case 'unix_time_converter':
-        return const UnixTimeScreen();
+        return UnixTimeScreen(key: key);
       case 'string_inspector':
-        return const StringInspectorScreen();
+        return StringInspectorScreen(key: key);
       case 'uri_encoder':
-        return const UriEncoderScreen();
+        return UriEncoderScreen(key: key);
       case 'string_replace':
-        return const StringReplaceScreen();
+        return StringReplaceScreen(key: key);
       case 'image_base64':
-        return const ImageBase64Screen();
+        return ImageBase64Screen(key: key);
       case 'html_viewer':
-        return const HtmlViewerScreen();
+        return HtmlViewerScreen(key: key);
       case 'websocket_tester':
-        return const WebSocketTesterScreen();
+        return WebSocketTesterScreen(key: key);
       default:
         final tool = allTools.firstWhere((tool) => tool['id'] == toolId);
         return tool['screen'];
