@@ -119,13 +119,16 @@ cache:
         if (i > 0) buffer.write('\n');
         
         if (val is Map && val.isNotEmpty) {
-          buffer.write('$indentStr$key:\n');
-          buffer.write(_yamlToString(val, indent + 1));
+          buffer.write('$indentStr$key:');
+          final nestedContent = _yamlToString(val, indent + 1);
+          buffer.write('\n$nestedContent');
         } else if (val is List && val.isNotEmpty) {
-          buffer.write('$indentStr$key:\n');
-          buffer.write(_yamlToString(val, indent + 1));
+          buffer.write('$indentStr$key:');
+          final nestedContent = _yamlToString(val, indent + 1);
+          buffer.write('\n$nestedContent');
         } else {
-          buffer.write('$indentStr$key: ${_yamlToString(val, 0)}');
+          final valueStr = _yamlToString(val, indent);
+          buffer.write('$indentStr$key: $valueStr');
         }
       }
       
@@ -141,32 +144,65 @@ cache:
         if (i > 0) buffer.write('\n');
         
         if (item is Map && item.isNotEmpty) {
-          buffer.write('$indentStr- ');
-          final itemStr = _yamlToString(item, indent + 1);
-          // Remove the first indent from the first line since we already added "- "
-          final lines = itemStr.split('\n');
-          buffer.write(lines.first.substring(2));
-          if (lines.length > 1) {
-            buffer.write('\n');
-            buffer.write(lines.skip(1).join('\n'));
+          // For maps in lists, we need special handling
+          final entries = (item as Map).entries.toList();
+          buffer.write('$indentStr-');
+          
+          for (int j = 0; j < entries.length; j++) {
+            final entry = entries[j];
+            final key = entry.key.toString();
+            final val = entry.value;
+            
+            if (j == 0) {
+              // First key-value pair goes on the same line as the dash
+              if (val is Map && val.isNotEmpty) {
+                buffer.write(' $key:');
+                final nestedContent = _yamlToString(val, indent + 2);
+                buffer.write('\n$nestedContent');
+              } else if (val is List && val.isNotEmpty) {
+                buffer.write(' $key:');
+                final nestedContent = _yamlToString(val, indent + 2);
+                buffer.write('\n$nestedContent');
+              } else {
+                final valueStr = _yamlToString(val, indent + 1);
+                buffer.write(' $key: $valueStr');
+              }
+            } else {
+              // Subsequent key-value pairs are indented to align with the first key
+              buffer.write('\n$indentStr ');
+              if (val is Map && val.isNotEmpty) {
+                buffer.write(' $key:');
+                final nestedContent = _yamlToString(val, indent + 2);
+                buffer.write('\n$nestedContent');
+              } else if (val is List && val.isNotEmpty) {
+                buffer.write(' $key:');
+                final nestedContent = _yamlToString(val, indent + 2);
+                buffer.write('\n$nestedContent');
+              } else {
+                final valueStr = _yamlToString(val, indent + 1);
+                buffer.write(' $key: $valueStr');
+              }
+            }
           }
         } else if (item is List && item.isNotEmpty) {
-          buffer.write('$indentStr- \n');
-          buffer.write(_yamlToString(item, indent + 1));
+          buffer.write('$indentStr-');
+          final nestedContent = _yamlToString(item, indent + 1);
+          buffer.write('\n$nestedContent');
         } else {
-          buffer.write('$indentStr- ${_yamlToString(item, 0)}');
+          final valueStr = _yamlToString(item, indent);
+          buffer.write('$indentStr- $valueStr');
         }
       }
       
       return buffer.toString();
     } else if (value is String) {
       // Handle special string cases
-      if (value.contains('\n') || value.contains('"') || value.contains("'")) {
+      if (value.contains('\n')) {
         // Use literal block scalar for multiline strings
-        if (value.contains('\n')) {
-          return '|\n${value.split('\n').map((line) => '  $line').join('\n')}';
-        }
-        // Quote strings that contain quotes or special characters
+        final currentIndentStr = '  ' * (indent + 1);
+        return '|\n${value.split('\n').map((line) => '$currentIndentStr$line').join('\n')}';
+      } else if (value.contains('"') || value.contains("'")) {
+        // Quote strings that contain quotes
         return '"${value.replaceAll('"', '\\"')}"';
       }
       // Check if string needs quoting (starts with special chars, looks like number, etc.)
