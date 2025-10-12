@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/yaml.dart';
+import 'package:flutter_highlight/themes/github.dart';
 
 class YamlFormatterScreen extends StatefulWidget {
   const YamlFormatterScreen({super.key});
@@ -10,9 +13,61 @@ class YamlFormatterScreen extends StatefulWidget {
 }
 
 class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  final TextEditingController _outputController = TextEditingController();
+  final CodeController _inputController = CodeController(
+    text: '',
+    language: yaml,
+  );
+  final CodeController _outputController = CodeController(
+    text: '',
+    language: yaml,
+  );
   String _errorMessage = '';
+
+  static const String _sampleYaml = '''# Sample YAML Configuration
+name: "My Application"
+version: "1.0.0"
+description: "A sample application configuration"
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "myapp_db"
+  credentials:
+    username: "admin"
+    password: "secret123"
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  ssl:
+    enabled: true
+    certificate: "/path/to/cert.pem"
+    key: "/path/to/key.pem"
+
+features:
+  - authentication
+  - logging
+  - monitoring
+  - caching
+
+logging:
+  level: "info"
+  outputs:
+    - type: "console"
+      format: "json"
+    - type: "file"
+      path: "/var/log/app.log"
+      rotation:
+        max_size: "100MB"
+        max_files: 5
+
+cache:
+  type: "redis"
+  ttl: 3600
+  settings:
+    max_memory: "256mb"
+    eviction_policy: "allkeys-lru"
+''';
 
   void _formatYaml() {
     setState(() {
@@ -164,6 +219,20 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
     });
   }
 
+  void _loadSample() {
+    setState(() {
+      _inputController.text = _sampleYaml;
+      _outputController.clear();
+      _errorMessage = '';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Sample YAML loaded'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Future<void> _pasteFromClipboard() async {
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
@@ -216,6 +285,21 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
     }
   }
 
+  Widget _buildCodeEditor(CodeController controller) {
+    return Container(
+       decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: Colors.grey)),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      child: SingleChildScrollView(
+        child: CodeTheme(
+          data: CodeThemeData(styles: githubTheme),
+          child: CodeField(controller: controller)
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -233,43 +317,16 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
               flex: 2,
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _inputController,
-                    maxLines: null,
-                    expands: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Paste your YAML here...',
-                    ),
-                    textAlignVertical: TextAlignVertical.top,
-                  ),
+                  _buildCodeEditor(_inputController),
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Tooltip(
-                        message: 'Paste from clipboard',
-                        child: InkWell(
-                          onTap: _pasteFromClipboard,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.content_paste,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ),
+                    child: IconButton(
+                      icon: const Icon(Icons.content_paste),
+                      iconSize: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: _pasteFromClipboard,
+                      tooltip: "Paste from clipboard",
                     ),
                   ),
                 ],
@@ -277,18 +334,26 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _formatYaml,
                   icon: const Icon(Icons.format_align_left),
                   label: const Text('Format'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _validateYaml,
                   icon: const Icon(Icons.check_circle),
                   label: const Text('Validate'),
                 ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _loadSample,
+                  icon: const Icon(Icons.description),
+                  label: const Text('Sample'),
+                ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _clearAll,
                   icon: const Icon(Icons.clear),
@@ -325,44 +390,16 @@ class _YamlFormatterScreenState extends State<YamlFormatterScreen> {
               flex: 2,
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _outputController,
-                    maxLines: null,
-                    expands: true,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Formatted YAML will appear here...',
-                    ),
-                    textAlignVertical: TextAlignVertical.top,
-                  ),
+                  _buildCodeEditor(_outputController),
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Tooltip(
-                        message: 'Copy to clipboard',
-                        child: InkWell(
-                          onTap: _copyToClipboard,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.content_copy,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ),
+                    child: IconButton(
+                      icon: const Icon(Icons.content_copy),
+                      iconSize: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: _copyToClipboard,
+                      tooltip: "Copy to clipboard",
                     ),
                   ),
                 ],
