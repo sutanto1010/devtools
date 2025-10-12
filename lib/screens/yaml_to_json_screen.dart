@@ -14,8 +14,6 @@ class YamlToJsonScreen extends StatefulWidget {
 }
 
 class _YamlToJsonScreenState extends State<YamlToJsonScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  final TextEditingController _outputController = TextEditingController();
   String _errorMessage = '';
   bool _isYamlToJson = true;
   bool isFullscreenInput = false;
@@ -249,9 +247,6 @@ balance: 1250.75''';
   void _swapConversion() {
     setState(() {
       _isYamlToJson = !_isYamlToJson;
-      final temp = _inputController.text;
-      _inputController.text = _outputController.text;
-      _outputController.text = temp;
       _errorMessage = '';
     });
   }
@@ -281,13 +276,18 @@ balance: 1250.75''';
     final clipboardData = await Clipboard.getData('text/plain');
     if (clipboardData?.text != null) {
       setState(() {
-        _inputController.text = clipboardData!.text!;
+        if (_isYamlToJson) {
+          _jsonCodeController.clear();
+          _yamlCodeController.text = clipboardData!.text!;
+        } else {
+          _yamlCodeController.clear();
+          _jsonCodeController.text = clipboardData!.text!;
+        }
       });
     }
   }
 
   Widget _buildCodeEditor({
-    required TextEditingController controller,
     required String hintText,
     required bool isInput,
   }) {
@@ -338,7 +338,7 @@ balance: 1250.75''';
                 icon: const Icon(Icons.copy, size: 16),
                 tooltip: 'Copy to clipboard',
                 iconSize: 16,
-                onPressed: () => _copyToClipboard(controller.text, _isYamlToJson ? 'YAML' : 'JSON'),
+                onPressed: () => _copyToClipboard(codeCtl.fullText, _isYamlToJson ? 'YAML' : 'JSON'),
               ),
             ],
           ),
@@ -364,7 +364,6 @@ balance: 1250.75''';
             Expanded(
               flex: 2,
               child: _buildCodeEditor(
-                controller: _inputController,
                 hintText: _isYamlToJson 
                     ? 'Paste your YAML data here...' 
                     : 'Paste your JSON data here...',
@@ -427,7 +426,6 @@ balance: 1250.75''';
             Expanded(
               flex: 2,
               child: _buildCodeEditor(
-                controller: _outputController,
                 hintText: _isYamlToJson 
                     ? 'Converted JSON will appear here...' 
                     : 'Converted YAML will appear here...',
@@ -451,8 +449,8 @@ balance: 1250.75''';
 
   @override
   void dispose() {
-    _inputController.dispose();
-    _outputController.dispose();
+    _jsonCodeController.dispose();
+    _yamlCodeController.dispose();
     super.dispose();
   }
 }
