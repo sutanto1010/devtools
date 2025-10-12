@@ -153,27 +153,6 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
 
   Widget _buildView(JsonFormatterState state) {
     return Scaffold(
-      appBar: !(state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) ? AppBar(
-        title: const Text('JSON Formatter'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.content_paste),
-            onPressed: _pasteFromClipboard,
-            tooltip: 'Paste from Clipboard',
-          ),
-          IconButton(
-            icon: const Icon(Icons.clear_all),
-            onPressed: _clearAll,
-            tooltip: 'Clear All',
-          ),
-          IconButton(
-            icon: const Icon(Icons.code),
-            onPressed: _loadSampleJson,
-            tooltip: 'Load Sample JSON',
-          ),
-        ],
-      ) : null,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
