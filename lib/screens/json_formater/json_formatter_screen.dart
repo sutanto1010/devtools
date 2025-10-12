@@ -123,10 +123,6 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                 iconSize: 16,
                 padding: const EdgeInsets.all(4),
                 tooltip: (state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) ?  'Exit full window' : 'Full window',
-                constraints: const BoxConstraints(
-                  minWidth: 24,
-                  minHeight: 24,
-                ),
               ),
               if (isInput) ...[
                 // Paste button for input field
@@ -136,10 +132,6 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                   iconSize: 16,
                   padding: const EdgeInsets.all(4),
                   tooltip: 'Paste from clipboard',
-                  constraints: const BoxConstraints(
-                    minWidth: 24,
-                    minHeight: 24,
-                  ),
                 ),
               ] else ...[
                 // Copy button for output field
@@ -149,10 +141,6 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                   iconSize: 16,
                   tooltip: 'Copy to clipboard',
                   padding: const EdgeInsets.all(4),
-                  constraints: const BoxConstraints(
-                    minWidth: 24,
-                    minHeight: 24,
-                  ),
                 ),
               ],
             ],
@@ -165,7 +153,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
 
   Widget _buildView(JsonFormatterState state) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: !(state is JsonFormatterLoaded && (state.isFullscreenInput || state.isFullscreenOutput)) ? AppBar(
         title: const Text('JSON Formatter'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
@@ -185,7 +173,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
             tooltip: 'Load Sample JSON',
           ),
         ],
-      ),
+      ) : null,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
