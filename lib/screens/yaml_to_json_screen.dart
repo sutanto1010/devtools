@@ -308,10 +308,10 @@ balance: 1250.75''';
     return Stack(
       children: [
         Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
           ),
           child: SingleChildScrollView(
             child: CodeTheme(
