@@ -66,6 +66,8 @@ dependencies:
   highlight: ^0.7.0
   flutter_highlight: ^0.7.0
   flutter_launcher_icons: ^0.14.4
+  re_editor: ^0.8.0
+  re_highlight: ^0.0.3
 
 dev_dependencies:
   flutter_test:

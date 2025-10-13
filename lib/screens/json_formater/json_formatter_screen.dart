@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_code_editor/flutter_code_editor.dart';
-import 'package:highlight/languages/json.dart';
-import 'package:flutter_highlight/themes/github.dart';
 import 'package:devtools/blocs/json_formatter/json_formatter_bloc.dart';
 import 'package:devtools/blocs/json_formatter/json_formatter_event.dart';
 import 'package:devtools/blocs/json_formatter/json_formatter_state.dart';
+import 'package:re_editor/re_editor.dart';
+import 'package:re_highlight/re_highlight.dart';
+import 'package:re_highlight/languages/json.dart';
+import 'package:re_highlight/styles/atom-one-light.dart';
+
 
 
 class JsonFormatterScreen extends StatelessWidget {
@@ -28,14 +30,10 @@ class JsonFormatterView extends StatefulWidget {
 }
 
 class _JsonFormatterViewState extends State<JsonFormatterView> {
-  final CodeController _inputCodeController = CodeController(
-    text: '',
-    language: json,
-  );
-  final CodeController _outputCodeController = CodeController(
-    text: '',
-    language: json,
-  );
+  bool _wrap = false;
+
+  final CodeLineEditingController _inputCodeController = CodeLineEditingController();
+  final CodeLineEditingController _outputCodeController = CodeLineEditingController();
 
   @override
   void initState() {
@@ -49,7 +47,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
 
   void _minifyJson() {
     final input = _inputCodeController.text;
-    _outputCodeController.clear();
+    _outputCodeController.text = '';
     context.read<JsonFormatterBloc>().add(MinifyJsonEvent(input));
   }
 
@@ -62,7 +60,7 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
   }
 
   void _copyToClipboard() {
-    final output = _outputCodeController.fullText;
+    final output = _outputCodeController.text;
     context.read<JsonFormatterBloc>().add(CopyToClipboardEvent(output));
   }
 
@@ -94,12 +92,35 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                   decoration: const BoxDecoration(
                     border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
                   ),
-                  child: SingleChildScrollView(
-                    child: CodeTheme(
-                      data: CodeThemeData(styles: githubTheme),
-                      child: CodeField(controller: isInput ? _inputCodeController : _outputCodeController, key: UniqueKey(),),
-                    ),
-                  ),
+                  child: CodeEditor(
+                          indicatorBuilder: (context, editingController, chunkController, notifier) {
+                            return Row(
+                              children: [
+                                DefaultCodeLineNumber(
+                                  controller: editingController,
+                                  notifier: notifier,
+                                ),
+                                DefaultCodeChunkIndicator(
+                                  width: 20,
+                                  controller: chunkController,
+                                  notifier: notifier
+                                )
+                              ],
+                            );
+                          },
+                          wordWrap: _wrap,
+                          controller: isInput ? _inputCodeController : _outputCodeController,
+                          style: CodeEditorStyle(
+                            codeTheme: CodeHighlightTheme(
+                              languages: {
+                                'json': CodeHighlightThemeMode(
+                                  mode: langJson,
+                                )
+                              },
+                              theme: atomOneLightTheme
+                            ),
+                          ),
+                        ),
                 ),
               ),
           ],
@@ -208,6 +229,29 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                   onPressed: _loadSampleJson,
                   icon: const Icon(Icons.science),
                   label: const Text('Sample'),
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _wrap = !_wrap;
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _wrap,
+                        onChanged: (value) {
+                          setState(() {
+                            _wrap = value ?? false;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('Wrap'),
+                      const SizedBox(width: 10),
+                    ],
+                  ),
                 ),
               ],
             ),
