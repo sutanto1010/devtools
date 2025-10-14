@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 import 'dart:convert';
+import 'package:re_editor/re_editor.dart';
+import 'package:re_highlight/re_highlight.dart';
+import 'package:re_highlight/languages/xml.dart';
+import 'package:re_highlight/languages/json.dart';
+import 'package:re_highlight/styles/atom-one-light.dart';
 
 class XmlToJsonScreen extends StatefulWidget {
   const XmlToJsonScreen({super.key});
@@ -11,8 +16,8 @@ class XmlToJsonScreen extends StatefulWidget {
 }
 
 class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  final TextEditingController _outputController = TextEditingController();
+  final CodeLineEditingController _inputController = CodeLineEditingController();
+  final CodeLineEditingController _outputController = CodeLineEditingController();
   String _errorMessage = '';
   bool _isXmlToJson = true;
   bool _includeAttributes = false;
@@ -21,7 +26,7 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
   void _convertXmlToJson() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _outputController.text = '';
     });
 
     try {
@@ -52,7 +57,7 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
   void _convertJsonToXml() {
     setState(() {
       _errorMessage = '';
-      _outputController.clear();
+      _outputController.text = '';
     });
 
     try {
@@ -281,8 +286,8 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
 
   void _clearAll() {
     setState(() {
-      _inputController.clear();
-      _outputController.clear();
+      _inputController.text = '';
+      _outputController.text = '';
       _errorMessage = '';
     });
   }
@@ -357,7 +362,7 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
   }
 }''';
       }
-      _outputController.clear();
+      _outputController.text = '';
       _errorMessage = '';
     });
   }
@@ -412,18 +417,49 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
               flex: 2,
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _inputController,
-                    maxLines: null,
-                    expands: true,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      hintText: _isXmlToJson 
-                          ? 'Paste your XML data here...' 
-                          : 'Paste your JSON data here...',
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey, width: 0.5),
+                      ),
+                      child: CodeEditor(
+                        indicatorBuilder: (context, editingController, chunkController, notifier) {
+                          return Row(
+                            children: [
+                              DefaultCodeLineNumber(
+                                controller: editingController,
+                                notifier: notifier,
+                              ),
+                              DefaultCodeChunkIndicator(
+                                width: 20,
+                                controller: chunkController,
+                                notifier: notifier
+                              )
+                            ],
+                          );
+                        },
+                        wordWrap: true,
+                        controller: _inputController,
+                        hint: _isXmlToJson 
+                            ? 'Paste your XML data here...' 
+                            : 'Paste your JSON data here...',
+                        style: CodeEditorStyle(
+                          fontSize: 18,
+                          codeTheme: CodeHighlightTheme(
+                            languages: {
+                              'xml': CodeHighlightThemeMode(
+                                mode: langXml,
+                              ),
+                              'json': CodeHighlightThemeMode(
+                                mode: langJson,
+                              ),
+                            },
+                            theme: atomOneLightTheme
+                          ),
+                        ),
+                                        ),
                     ),
-                    textAlignVertical: TextAlignVertical.top,
-                  ),
                   Positioned(
                     top: 8,
                     right: 8,
@@ -450,7 +486,6 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
             // Action Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -507,18 +542,48 @@ class _XmlToJsonScreenState extends State<XmlToJsonScreen> {
               flex: 2,
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _outputController,
-                    maxLines: null,
-                    expands: true,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      hintText: _isXmlToJson 
-                          ? 'Converted JSON will appear here...' 
-                          : 'Converted XML will appear here...',
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey, width: 0.5),
                     ),
-                    textAlignVertical: TextAlignVertical.top,
+                    child: CodeEditor(
+                          indicatorBuilder: (context, editingController, chunkController, notifier) {
+                            return Row(
+                              children: [
+                                DefaultCodeLineNumber(
+                                  controller: editingController,
+                                  notifier: notifier,
+                                ),
+                                DefaultCodeChunkIndicator(
+                                  width: 20,
+                                  controller: chunkController,
+                                  notifier: notifier
+                                )
+                              ],
+                            );
+                          },
+                          wordWrap: true,
+                          controller: _outputController,
+                          hint: _isXmlToJson 
+                              ? 'Converted JSON will appear here...' 
+                              : 'Converted XML will appear here...',
+                          style: CodeEditorStyle(
+                            fontSize: 18,
+                            codeTheme: CodeHighlightTheme(
+                              languages: {
+                                'xml': CodeHighlightThemeMode(
+                                  mode: langXml,
+                                ),
+                                'json': CodeHighlightThemeMode(
+                                  mode: langJson,
+                                ),
+                              },
+                              theme: atomOneLightTheme
+                            ),
+                          ),
+                      ),
                   ),
                   Positioned(
                     top: 8,
