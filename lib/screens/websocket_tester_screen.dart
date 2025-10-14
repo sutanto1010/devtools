@@ -38,7 +38,6 @@ class _WebSocketTesterScreenState extends State<WebSocketTesterScreen>
   final List<WebSocketMessage> _messages = [];
   final Map<String, String> _headers = {};
   final List<String> _savedConnections = [];
-  String _selectedProtocol = 'ws://';
   bool _autoScroll = true;
   bool _showTimestamps = true;
   bool _prettyPrintJson = true;
@@ -349,23 +348,6 @@ class _WebSocketTesterScreenState extends State<WebSocketTesterScreen>
           // URL Input
           Row(
             children: [
-              SizedBox(
-                width: 80,
-                child: DropdownButton<String>(
-                  value: _selectedProtocol,
-                  items: ['ws://', 'wss://'].map((protocol) {
-                    return DropdownMenuItem(
-                      value: protocol,
-                      child: Text(protocol),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedProtocol = value!;
-                    });
-                  },
-                ),
-              ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
