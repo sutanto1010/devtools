@@ -3,26 +3,26 @@
 <plist version="1.0">
 <dict>
 	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	<key>com.apple.security.automation.apple-events</key>
 	<true/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
-	<key>com.apple.security.network.server</key>
+	<key>com.apple.security.device.screen-recording</key>
+	<true/>
+	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
-	<key>com.apple.security.files.downloads.read-write</key>
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.accessibility</key>
 	<true/>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
 	<array>
 		<string>/</string>
 	</array>
-	<!-- Add screen recording entitlement -->
-	<key>com.apple.security.device.screen-recording</key>
-	<true/>
-	<!-- Add accessibility entitlement for reading selected text from other apps -->
-	<key>com.apple.security.automation.apple-events</key>
-	<true/>
 </dict>
 </plist>

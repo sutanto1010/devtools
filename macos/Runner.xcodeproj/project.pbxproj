@@ -29,6 +29,7 @@
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		491F21103A63585F4537D155 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27AEB54A7625379133E5BB16 /* Pods_RunnerTests.framework */; };
 		A94DBE542E9E88B70066063B /* SelectedTextKit in Frameworks */ = {isa = PBXBuildFile; productRef = A94DBE532E9E88B70066063B /* SelectedTextKit */; };
+		A94DBE562E9E8BBF0066063B /* SelectedTextKit in Frameworks */ = {isa = PBXBuildFile; productRef = A94DBE552E9E8BBF0066063B /* SelectedTextKit */; };
 		C4BBF822CE6EA8F2CAECFBE8 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 705545B0360C91D760EC5749 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -105,6 +106,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C4BBF822CE6EA8F2CAECFBE8 /* Pods_Runner.framework in Frameworks */,
+				A94DBE562E9E8BBF0066063B /* SelectedTextKit in Frameworks */,
 				A94DBE542E9E88B70066063B /* SelectedTextKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -586,6 +588,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				PRODUCT_BUNDLE_IDENTIFIER = id.brader.devtools;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -722,6 +725,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				PRODUCT_BUNDLE_IDENTIFIER = id.brader.devtools;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -746,6 +750,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				PRODUCT_BUNDLE_IDENTIFIER = id.brader.devtools;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -826,6 +831,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		A94DBE532E9E88B70066063B /* SelectedTextKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A94DBE512E9E86CD0066063B /* XCRemoteSwiftPackageReference "SelectedTextKit" */;
+			productName = SelectedTextKit;
+		};
+		A94DBE552E9E8BBF0066063B /* SelectedTextKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A94DBE512E9E86CD0066063B /* XCRemoteSwiftPackageReference "SelectedTextKit" */;
 			productName = SelectedTextKit;
