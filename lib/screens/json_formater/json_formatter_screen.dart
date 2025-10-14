@@ -109,8 +109,10 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                             );
                           },
                           wordWrap: _wrap,
+                          findController: CodeFindController(_outputCodeController),
                           controller: isInput ? _inputCodeController : _outputCodeController,
                           style: CodeEditorStyle(
+                            fontSize: 18,
                             codeTheme: CodeHighlightTheme(
                               languages: {
                                 'json': CodeHighlightThemeMode(
@@ -270,8 +272,6 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                  ),
                ),
              ],
-            if(!(state is JsonFormatterLoaded && state.isFullscreenOutput))
-            const SizedBox(height: 16),
             // Bottom - Output
             if(!(state is JsonFormatterLoaded && state.isFullscreenInput))
             Expanded(
