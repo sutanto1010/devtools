@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_code_editor/flutter_code_editor.dart';
-import 'package:highlight/languages/xml.dart';
-import 'package:flutter_highlight/themes/github.dart';
+import 'package:re_editor/re_editor.dart';
+import 'package:re_highlight/re_highlight.dart';
+import 'package:re_highlight/languages/xml.dart';
+import 'package:re_highlight/styles/atom-one-light.dart';
 
 class XmlFormatterScreen extends StatefulWidget {
   const XmlFormatterScreen({super.key});
@@ -12,12 +13,8 @@ class XmlFormatterScreen extends StatefulWidget {
 }
 
 class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
-  final CodeController _inputController = CodeController(
-    language: xml,
-  );
-  final CodeController _outputController = CodeController(
-    language: xml,
-  );
+  final CodeLineEditingController _inputController = CodeLineEditingController();
+  final CodeLineEditingController _outputController = CodeLineEditingController();
   String _errorMessage = '';
   String _successMessage = '';
   bool _sortAttributes = false;
@@ -44,7 +41,7 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
     setState(() {
       _errorMessage = '';
       _successMessage = '';
-      _outputController.clear();
+      _outputController.text = '';
     });
 
     try {
@@ -73,7 +70,7 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
     setState(() {
       _errorMessage = '';
       _successMessage = '';
-      _outputController.clear();
+      _outputController.text = '';
     });
 
     try {
@@ -127,8 +124,8 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
 
   void _clearAll() {
     setState(() {
-      _inputController.clear();
-      _outputController.clear();
+      _inputController.text = '';
+      _outputController.text = '';
       _errorMessage = '';
       _successMessage = '';
     });
@@ -322,11 +319,35 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
                 ),
                 child: Stack(
                   children: [
-                    SingleChildScrollView(
-                      child: CodeTheme(
-                        data: CodeThemeData(styles: githubTheme),
-                        child: CodeField(controller: _inputController),
-                      ),
+                    CodeEditor(
+                        indicatorBuilder: (context, editingController, chunkController, notifier) {
+                          return Row(
+                            children: [
+                              DefaultCodeLineNumber(
+                                controller: editingController,
+                                notifier: notifier,
+                              ),
+                              DefaultCodeChunkIndicator(
+                                width: 20,
+                                controller: chunkController,
+                                notifier: notifier
+                              )
+                            ],
+                          );
+                        },
+                        wordWrap: true,
+                        controller: _inputController,
+                        style: CodeEditorStyle(
+                          fontSize: 18,
+                          codeTheme: CodeHighlightTheme(
+                            languages: {
+                              'xml': CodeHighlightThemeMode(
+                                mode: langXml,
+                              )
+                            },
+                            theme: atomOneLightTheme
+                          ),
+                        ),
                     ),
                     Positioned(
                       top: 8,
@@ -346,7 +367,7 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
                           IconButton(
                             onPressed: () {
                               setState(() {
-                                _inputController.clear();
+                                _inputController.text = '';
                                 _errorMessage = '';
                                 _successMessage = '';
                               });
@@ -503,11 +524,35 @@ class _XmlFormatterScreenState extends State<XmlFormatterScreen> {
                 ),
                 child: Stack(
                   children: [
-                    SingleChildScrollView(
-                      child: CodeTheme(
-                        data: CodeThemeData(styles: githubTheme),
-                        child: CodeField(controller: _outputController),
-                      ),
+                    CodeEditor(
+                        indicatorBuilder: (context, editingController, chunkController, notifier) {
+                          return Row(
+                            children: [
+                              DefaultCodeLineNumber(
+                                controller: editingController,
+                                notifier: notifier,
+                              ),
+                              DefaultCodeChunkIndicator(
+                                width: 20,
+                                controller: chunkController,
+                                notifier: notifier
+                              )
+                            ],
+                          );
+                        },
+                        wordWrap: true,
+                        controller: _outputController,
+                        style: CodeEditorStyle(
+                          fontSize: 18,
+                          codeTheme: CodeHighlightTheme(
+                            languages: {
+                              'xml': CodeHighlightThemeMode(
+                                mode: langXml,
+                              )
+                            },
+                            theme: atomOneLightTheme
+                          ),
+                        ),
                     ),
                     Positioned(
                       top: 8,
