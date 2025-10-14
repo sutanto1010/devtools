@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   clipboard_watcher
+  hotkey_manager_linux
   irondash_engine_context
   openpgp
   screen_capturer_linux

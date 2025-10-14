@@ -28,6 +28,7 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		491F21103A63585F4537D155 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27AEB54A7625379133E5BB16 /* Pods_RunnerTests.framework */; };
+		A94DBE542E9E88B70066063B /* SelectedTextKit in Frameworks */ = {isa = PBXBuildFile; productRef = A94DBE532E9E88B70066063B /* SelectedTextKit */; };
 		C4BBF822CE6EA8F2CAECFBE8 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 705545B0360C91D760EC5749 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -104,6 +105,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C4BBF822CE6EA8F2CAECFBE8 /* Pods_Runner.framework in Frameworks */,
+				A94DBE542E9E88B70066063B /* SelectedTextKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +293,9 @@
 				Base,
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
+			packageReferences = (
+				A94DBE512E9E86CD0066063B /* XCRemoteSwiftPackageReference "SelectedTextKit" */,
+			);
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -807,6 +812,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A94DBE512E9E86CD0066063B /* XCRemoteSwiftPackageReference "SelectedTextKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tisfeng/SelectedTextKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A94DBE532E9E88B70066063B /* SelectedTextKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A94DBE512E9E86CD0066063B /* XCRemoteSwiftPackageReference "SelectedTextKit" */;
+			productName = SelectedTextKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 33CC10E52044A3C60003C045 /* Project object */;
 }

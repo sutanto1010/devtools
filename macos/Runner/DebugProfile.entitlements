@@ -21,5 +21,8 @@
 	<!-- Add screen recording entitlement -->
 	<key>com.apple.security.device.screen-recording</key>
 	<true/>
+	<!-- Add accessibility entitlement for reading selected text from other apps -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
 </dict>
 </plist>

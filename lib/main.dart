@@ -1,5 +1,8 @@
 
+import 'package:devtools/services/global_selection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:window_manager/window_manager.dart';  // Add this import
 import 'pages/home_page.dart';
 import 'package:network_tools/network_tools.dart';
@@ -17,7 +20,7 @@ void main() async {
   
   // Initialize window manager
   await windowManager.ensureInitialized();
-  
+  await hotKeyManager.unregisterAll();
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1200, 800),
     center: true,
@@ -39,6 +42,30 @@ void main() async {
   highlight.registerLanguage('xml', xml);
   highlight.registerLanguage('yaml', yaml);
   highlight.registerLanguage('go', go);
+  // ⌥ + Q
+  HotKey _hotKey = HotKey(
+    key: PhysicalKeyboardKey.keyQ,
+    modifiers: [HotKeyModifier.alt],
+    // Set hotkey scope (default is HotKeyScope.system)
+    scope: HotKeyScope.system, // Set as inapp-wide hotkey.
+  );
+  await hotKeyManager.register(
+  _hotKey,
+  keyDownHandler: (hotKey) async {
+    print('onKeyDown+${hotKey.toJson()}');
+    final hasPermission = await GlobalSelectionService.ensureAccessibilityPermission();
+    if (!hasPermission) {
+      print('Accessibility permission not granted');
+      return;
+    }
+    final selectedText = await GlobalSelectionService.getSelectedText();
+    print('selectedText: $selectedText');
+  },
+  // Only works on macOS.
+  keyUpHandler: (hotKey){
+    print('onKeyUp+${hotKey.toJson()}');
+  } ,
+);
   runApp(const MyApp());
 }
 
