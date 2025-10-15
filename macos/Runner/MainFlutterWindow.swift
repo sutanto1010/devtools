@@ -19,8 +19,8 @@ class MainFlutterWindow: NSWindow {
       switch call.method {
       case "getSelectedText":
         Task {
-          let selectedText = await self?.getSelectedTextFromFocusedElement()
-          result(selectedText)
+          let selectionData = await self?.getSelectedTextFromFocusedElement()
+          result(selectionData)
         }
       case "ensureAccessibilityPermission":
         let granted = self?.ensureAccessibilityPermission() ?? false
@@ -40,7 +40,7 @@ class MainFlutterWindow: NSWindow {
   }
 
   // Try to get selected text from the currently focused UI element across apps
-  private func getSelectedTextFromFocusedElement() async -> String? {
+  private func getSelectedTextFromFocusedElement() async -> [String: Any]? {
     // Ensure we have Accessibility permission
     let isTrusted = AXIsProcessTrusted()
     if !isTrusted {
@@ -50,7 +50,21 @@ class MainFlutterWindow: NSWindow {
 
     do {
       // Use SelectedTextKit to get selected text with multiple fallback methods
-      return try await SelectedTextManager.shared.getSelectedText()
+      let selectedText = try await SelectedTextManager.shared.getSelectedText()
+      
+      // Get current mouse position
+      let mouseLocation = NSEvent.mouseLocation
+      let screenFrame = NSScreen.main?.frame ?? NSRect.zero
+      
+      // Convert mouse position to screen coordinates (flip Y-axis for macOS coordinate system)
+      let cursorX = mouseLocation.x
+      let cursorY = screenFrame.height - mouseLocation.y
+      
+      return [
+        "text": selectedText ?? "",
+        "cursorX": cursorX,
+        "cursorY": cursorY
+      ]
     } catch {
       // Log error and return nil if SelectedTextKit fails
       print("SelectedTextKit error: \(error)")
