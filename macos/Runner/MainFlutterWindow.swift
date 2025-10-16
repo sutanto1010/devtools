@@ -4,6 +4,23 @@ import ApplicationServices
 import SelectedTextKit
 import desktop_multi_window
 import desktop_lifecycle
+import hotkey_manager_macos
+import clipboard_watcher
+import desktop_multi_window
+import device_info_plus
+import file_picker
+import irondash_engine_context
+import openpgp
+import package_info_plus
+import path_provider_foundation
+import screen_capturer_macos
+import screen_retriever_macos
+import shared_preferences_foundation
+import sqflite_darwin
+import super_native_extensions
+import tray_manager
+import url_launcher_macos
+import webview_flutter_wkwebview
 import window_manager
 
 class MainFlutterWindow: NSWindow {
@@ -16,12 +33,25 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
-      // Register the plugin which you want access from other isolate.
-      // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "DesktopLifecyclePlugin"))
-      // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
-      // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "FlutterMultiWindowPlugin"))
-      // WindowManagerPlugin.register(with: registry.registrar(forPlugin: "WindowManagerPlugin"))
-      WindowManagerPlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
+        ClipboardWatcherPlugin.register(with: controller.registrar(forPlugin: "ClipboardWatcherPlugin"))
+        DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "DesktopLifecyclePlugin"))
+        FlutterMultiWindowPlugin.register(with: controller.registrar(forPlugin: "FlutterMultiWindowPlugin"))
+        DeviceInfoPlusMacosPlugin.register(with: controller.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
+        FilePickerPlugin.register(with: controller.registrar(forPlugin: "FilePickerPlugin"))
+        HotkeyManagerMacosPlugin.register(with: controller.registrar(forPlugin: "HotkeyManagerMacosPlugin"))
+        IrondashEngineContextPlugin.register(with: controller.registrar(forPlugin: "IrondashEngineContextPlugin"))
+        OpenpgpPlugin.register(with: controller.registrar(forPlugin: "OpenpgpPlugin"))
+        FPPPackageInfoPlusPlugin.register(with: controller.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
+        PathProviderPlugin.register(with: controller.registrar(forPlugin: "PathProviderPlugin"))
+        ScreenCapturerMacosPlugin.register(with: controller.registrar(forPlugin: "ScreenCapturerMacosPlugin"))
+        ScreenRetrieverMacosPlugin.register(with: controller.registrar(forPlugin: "ScreenRetrieverMacosPlugin"))
+        SharedPreferencesPlugin.register(with: controller.registrar(forPlugin: "SharedPreferencesPlugin"))
+        SqflitePlugin.register(with: controller.registrar(forPlugin: "SqflitePlugin"))
+        SuperNativeExtensionsPlugin.register(with: controller.registrar(forPlugin: "SuperNativeExtensionsPlugin"))
+        TrayManagerPlugin.register(with: controller.registrar(forPlugin: "TrayManagerPlugin"))
+        UrlLauncherPlugin.register(with: controller.registrar(forPlugin: "UrlLauncherPlugin"))
+        WebViewFlutterPlugin.register(with: controller.registrar(forPlugin: "WebViewFlutterPlugin"))
+        // WindowManagerPlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
     }
 
     // Set up method channel to fetch selected text from any app via macOS Accessibility API

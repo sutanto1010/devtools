@@ -19,9 +19,11 @@ import 'package:highlight/highlight_core.dart' show highlight;
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
+  print('args: $args Length: ${args.length}');
+  final isMainWindow = args.length == 0;
   // Initialize window manager
-  if (args.isEmpty) {
+  if (isMainWindow) {
+    await windowManager.ensureInitialized();
     await windowManager.ensureInitialized();
     await hotKeyManager.unregisterAll();
     final appDocDirectory = await getApplicationDocumentsDirectory();
@@ -77,7 +79,7 @@ void main(List<String> args) async {
         window
           ..setFrame(const Offset(0, 0) & const Size(1280, 720))
           ..center()
-          ..setTitle('Another window')
+          // ..setTitle('Another window')
           ..show();
       },
       // Only works on macOS.
@@ -86,20 +88,7 @@ void main(List<String> args) async {
       },
     );
   }
-  if (args.isNotEmpty) {
-    WindowOptions windowOptions = const WindowOptions(
-      size: Size(1200, 800),
-      center: true,
-      backgroundColor: Colors.transparent,
-      skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.normal,
-      title: 'Dev Tools',
-    );
-
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
+  if (!isMainWindow) {
     runApp(const QuickApp());
   } else {
     runApp(const MyApp());
