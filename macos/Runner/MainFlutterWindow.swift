@@ -4,6 +4,7 @@ import ApplicationServices
 import SelectedTextKit
 import desktop_multi_window
 import desktop_lifecycle
+import window_manager
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
@@ -17,8 +18,10 @@ class MainFlutterWindow: NSWindow {
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
       // Register the plugin which you want access from other isolate.
       // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "DesktopLifecyclePlugin"))
-      DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
+      // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
       // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "FlutterMultiWindowPlugin"))
+      // WindowManagerPlugin.register(with: registry.registrar(forPlugin: "WindowManagerPlugin"))
+      WindowManagerPlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
     }
 
     // Set up method channel to fetch selected text from any app via macOS Accessibility API

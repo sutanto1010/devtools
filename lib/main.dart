@@ -19,7 +19,7 @@ import 'package:highlight/highlight_core.dart' show highlight;
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await windowManager.ensureInitialized();
   // Initialize window manager
   if (args.isEmpty) {
     await windowManager.ensureInitialized();
@@ -87,6 +87,19 @@ void main(List<String> args) async {
     );
   }
   if (args.isNotEmpty) {
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1200, 800),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+      title: 'Dev Tools',
+    );
+
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
     runApp(const QuickApp());
   } else {
     runApp(const MyApp());
