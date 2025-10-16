@@ -2,15 +2,24 @@ import Cocoa
 import FlutterMacOS
 import ApplicationServices
 import SelectedTextKit
+import desktop_multi_window
+import desktop_lifecycle
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
+    
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
+      // Register the plugin which you want access from other isolate.
+      // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "DesktopLifecyclePlugin"))
+      DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
+      // DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "FlutterMultiWindowPlugin"))
+    }
 
     // Set up method channel to fetch selected text from any app via macOS Accessibility API
     let channel = FlutterMethodChannel(name: "global_text_selection",

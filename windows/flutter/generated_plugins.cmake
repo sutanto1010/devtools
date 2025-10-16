@@ -4,6 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   clipboard_watcher
+  desktop_lifecycle
+  desktop_multi_window
   hotkey_manager_windows
   irondash_engine_context
   openpgp
