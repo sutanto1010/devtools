@@ -17,6 +17,7 @@ import 'package:highlight/languages/yaml.dart';
 import 'package:highlight/languages/go.dart';
 import 'package:highlight/highlight_core.dart' show highlight;
 
+WindowController? quickWindow;
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   print('args: $args Length: ${args.length}');
@@ -67,16 +68,16 @@ void main(List<String> args) async {
         }
         final selectedText = await GlobalSelectionService.getSelectedText();
         print('selectedText: $selectedText');
-
-        final window = await DesktopMultiWindow.createWindow(
-          jsonEncode({
-            'args1': 'Sub window',
-            'args2': 100,
-            'args3': true,
-            'business': 'business_test',
-          }),
-        );
-        window
+        windowManager.hide();
+        quickWindow ??= await DesktopMultiWindow.createWindow(
+            jsonEncode({
+              'args1': 'Sub window',
+              'args2': 100,
+              'args3': true,
+              'business': 'business_test',
+            }),
+          );
+        quickWindow!
           ..setFrame(const Offset(0, 0) & const Size(1280, 720))
           ..center()
           // ..setTitle('Another window')
