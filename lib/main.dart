@@ -218,47 +218,88 @@ class QuickApp extends StatelessWidget {
         body: Center(
           child: Container(
             margin: const EdgeInsets.all(20),
-            child: CustomPaint(
-              painter: BalloonTipPainter(),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 15, 20, 25),
-                constraints: const BoxConstraints(
-                  minWidth: 200,
-                  maxWidth: 400,
-                  minHeight: 100,
+            child: Stack(
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(12),
+                  child: CustomPaint(
+                    painter: BalloonTipPainter(),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 15, 20, 25),
+                      constraints: const BoxConstraints(
+                        minWidth: 200,
+                        maxWidth: 400,
+                        minHeight: 100,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.deepPurple.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Quick App',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Your quick development tools',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                // Close button positioned at top-left
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: GestureDetector(
+                    onTap: () async {
+                      // Close the quick window
+                      if (quickWindow != null) {
+                        await quickWindow!.close();
+                        quickWindow = null;
+                      }
+                    },
+                    child: Container(
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
-                        color: Colors.deepPurple.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.red.withOpacity(0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: const Text(
-                        'Quick App',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Your quick development tools',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 16,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
