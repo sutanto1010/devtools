@@ -51,7 +51,7 @@ class MainFlutterWindow: NSWindow {
         TrayManagerPlugin.register(with: controller.registrar(forPlugin: "TrayManagerPlugin"))
         UrlLauncherPlugin.register(with: controller.registrar(forPlugin: "UrlLauncherPlugin"))
         WebViewFlutterPlugin.register(with: controller.registrar(forPlugin: "WebViewFlutterPlugin"))
-        // WindowManagerPlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
+        WindowManagerPlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
     }
 
     // Set up method channel to fetch selected text from any app via macOS Accessibility API

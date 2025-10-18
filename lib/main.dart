@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:devtools/services/global_selection.dart';
+import 'package:devtools/services/pub_sub_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+
 import 'package:window_manager/window_manager.dart'; // Add this import
 import 'pages/home_page.dart';
 import 'package:network_tools/network_tools.dart';
@@ -17,14 +19,14 @@ import 'package:highlight/languages/yaml.dart';
 import 'package:highlight/languages/go.dart';
 import 'package:highlight/highlight_core.dart' show highlight;
 
-WindowController? quickWindow;
+WindowController? quickWindowCtrl;
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   print('args: $args Length: ${args.length}');
+   await windowManager.ensureInitialized();
   final isMainWindow = args.length == 0;
   // Initialize window manager
   if (isMainWindow) {
-    await windowManager.ensureInitialized();
     await windowManager.ensureInitialized();
     await hotKeyManager.unregisterAll();
     final appDocDirectory = await getApplicationDocumentsDirectory();
@@ -69,15 +71,12 @@ void main(List<String> args) async {
         final selectedText = await GlobalSelectionService.getSelectedText();
         print('selectedText: $selectedText');
         windowManager.hide();
-        quickWindow ??= await DesktopMultiWindow.createWindow(
+        quickWindowCtrl ??= await DesktopMultiWindow.createWindow(
             jsonEncode({
               'args1': 'Sub window',
-              'args2': 100,
-              'args3': true,
-              'business': 'business_test',
             }),
           );
-        quickWindow!
+        quickWindowCtrl!
           ..setFrame(const Offset(0, 0) & const Size(1280, 720))
           ..center()
           // ..setTitle('Another window')
@@ -90,10 +89,11 @@ void main(List<String> args) async {
     );
   }
   if (!isMainWindow) {
-    runApp(const QuickApp());
+    runApp(QuickApp.Instance());
   } else {
     runApp(const MyApp());
   }
+  
 }
 
 class MyApp extends StatelessWidget with WindowListener {
@@ -203,6 +203,11 @@ class BalloonTipPainter extends CustomPainter {
 }
 
 class QuickApp extends StatelessWidget {
+  static QuickApp? _instance = QuickApp();
+  static QuickApp Instance() {
+    _instance ??= QuickApp();
+    return _instance!;
+  }
   const QuickApp({super.key});
 
   @override
@@ -272,10 +277,8 @@ class QuickApp extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () async {
                       // Close the quick window
-                      if (quickWindow != null) {
-                        await quickWindow!.close();
-                        quickWindow = null;
-                      }
+                      // DesktopMultiWindow.invokeMethod(1, 'closeQuickWindow');
+                      await windowManager.hide();
                     },
                     child: Container(
                       width: 24,
