@@ -89,8 +89,8 @@ class _JsonFormatterViewState extends State<JsonFormatterView> {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey, width: 0.5),
                   ),
                   child: CodeEditor(
                           indicatorBuilder: (context, editingController, chunkController, notifier) {
