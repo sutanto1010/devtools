@@ -1,6 +1,8 @@
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:devtools/balloon_tip_painter.dart';
 import 'package:devtools/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/services/message_codec.dart';
 import 'package:window_manager/window_manager.dart';
 
 class QuickApp extends StatefulWidget {
@@ -25,20 +27,16 @@ class _QuickAppState extends State<QuickApp> {
     // Schedule the height measurement after the widget is built and displayed
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _measureWidgetHeight();
+      DesktopMultiWindow.setMethodHandler(multiWindowHandler);
     });
   }
 
-  Future<void> _measureWidgetHeight() async {
+  Future<Size> _measureWidgetHeight() async {
     final RenderBox? renderBox = _containerKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox != null) {
-      final height = renderBox.size.height;
-      final width = renderBox.size.width;
-      
-      print('QuickApp widget height: ${height}px');
-      // Update the window size to match the widget height
-      await windowManager.setSize(Size(width, height), animate: false);
-      await windowManager.setPosition(Offset(10, 10), animate: false);
+     return renderBox.size;
     }
+    return Size.zero;
   }
 
   @override
@@ -140,5 +138,19 @@ class _QuickAppState extends State<QuickApp> {
         ),
       ),
     );
+  }
+
+  Future multiWindowHandler(MethodCall call, int fromWindowId) async {
+    final text = call.arguments[0] as String;
+    final cursorX = call.arguments[1] as double;
+    final cursorY = call.arguments[2] as double;
+
+    print('multiWindowHandler: ${call.method} text: $text cursorX: $cursorX cursorY: $cursorY');
+    final size = await _measureWidgetHeight();
+    await windowManager.setSize(size, animate: false);
+    final x = cursorX - size.width / 2;
+    final y = cursorY-size.height;
+    await windowManager.setSize(size, animate: false);
+    await windowManager.setPosition(Offset(x, y), animate: false);
   }
 }

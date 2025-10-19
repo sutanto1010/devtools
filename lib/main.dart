@@ -83,6 +83,7 @@ void main(List<String> args) async {
           ..center()
           // ..setTitle('Another window')
           ..show();
+        DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
       },
       // Only works on macOS.
       keyUpHandler: (hotKey) {
