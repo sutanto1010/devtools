@@ -31,10 +31,10 @@ class GlobalSelectionService {
 
   /// Returns the currently selected text from the focused element in any app (macOS only).
   /// May return null if no selection, element not readable, or permission is not granted.
-  static Future<String?> getSelectedText() async {
+  static Future<dynamic?> getSelectedText() async {
     try {
-      final String? text = await _channel.invokeMethod<String>('getSelectedText');
-      return text;
+      final dynamic data = await _channel.invokeMethod<dynamic>('getSelectedText');
+      return data;
     } catch (_) {
       return null;
     }

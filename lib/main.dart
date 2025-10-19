@@ -68,8 +68,8 @@ void main(List<String> args) async {
           print('Accessibility permission not granted');
           return;
         }
-        final selectedText = await GlobalSelectionService.getSelectedText();
-        print('selectedText: $selectedText');
+        final data = await GlobalSelectionService.getSelectedTextWithCursor();
+        print('selectedData text: ${data?.text} cursorX: ${data?.cursorX} cursorY: ${data?.cursorY}');
         windowManager.hide();
         quickWindowCtrl ??= await DesktopMultiWindow.createWindow(
             jsonEncode({
