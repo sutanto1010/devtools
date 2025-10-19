@@ -66,35 +66,30 @@ class _QuickAppState extends State<QuickApp> {
                         maxWidth: 400,
                         minHeight: 100,
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SingleChildScrollView(
-                            child: 
-                              Column(
-                                children: [
-                                  Text(
-                                    selectedText,
-                                  ),
-                                  const Text(
-                                    'Quick App',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.deepPurple,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextField(
-                                    decoration: InputDecoration(
-                                      hintText: 'Enter text',
-                                    ),
-                                  ),
-                                ],
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              selectedText,
+                            ),
+                            const Text(
+                              'Quick App',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
                               ),
-                          ),
-                        ],
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Enter text',
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
