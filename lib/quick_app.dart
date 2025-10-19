@@ -20,7 +20,7 @@ class QuickApp extends StatefulWidget {
 
 class _QuickAppState extends State<QuickApp> {
   final GlobalKey _containerKey = GlobalKey();
-
+  String selectedText = '';
   @override
   void initState() {
     super.initState();
@@ -69,31 +69,30 @@ class _QuickAppState extends State<QuickApp> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.deepPurple.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'Quick App',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
+                          SingleChildScrollView(
+                            child: 
+                              Column(
+                                children: [
+                                  Text(
+                                    selectedText,
+                                  ),
+                                  const Text(
+                                    'Quick App',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurple,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter text',
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Your quick development tools',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
                           ),
                         ],
                       ),
@@ -152,5 +151,8 @@ class _QuickAppState extends State<QuickApp> {
     final y = cursorY-size.height;
     await windowManager.setSize(size, animate: false);
     await windowManager.setPosition(Offset(x, y), animate: false);
+    setState(() {
+      selectedText = text;
+    });
   }
 }

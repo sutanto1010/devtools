@@ -79,7 +79,7 @@ void main(List<String> args) async {
             }),
           );
         quickWindowCtrl!
-          ..setFrame(const Offset(0, 0) & const Size(400, 400))
+          ..setFrame(const Offset(0, 0) & const Size(800, 800))
           ..center()
           // ..setTitle('Another window')
           ..show();
