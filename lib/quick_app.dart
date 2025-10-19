@@ -55,41 +55,34 @@ class _QuickAppState extends State<QuickApp> {
             margin: const EdgeInsets.all(20),
             child: Stack(
               children: [
-                Container(
-                  margin: const EdgeInsets.all(12),
+                Padding(
+                  padding: const EdgeInsets.all(12),
                   child: CustomPaint(
                     painter: BalloonTipPainter(),
                     child: Container(
-                      padding: const EdgeInsets.fromLTRB(20, 15, 20, 25),
-                      constraints: const BoxConstraints(
-                        minWidth: 200,
-                        maxWidth: 400,
-                        minHeight: 100,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              selectedText,
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            selectedText,
+                          ),
+                          const Text(
+                            'Quick App',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple,
                             ),
-                            const Text(
-                              'Quick App',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
-                              ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Enter text',
                             ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Enter text',
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
