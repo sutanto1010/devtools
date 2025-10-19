@@ -114,11 +114,11 @@ class _QuickAppState extends State<QuickApp> {
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.8),
+                        color: Colors.red,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
+                            color: Colors.black,
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
