@@ -77,7 +77,7 @@ void main(List<String> args) async {
             }),
           );
         quickWindowCtrl!
-          ..setFrame(const Offset(0, 0) & const Size(1280, 720))
+          ..setFrame(const Offset(0, 0) & const Size(400, 400))
           ..center()
           // ..setTitle('Another window')
           ..show();
@@ -202,13 +202,42 @@ class BalloonTipPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
-class QuickApp extends StatelessWidget {
+class QuickApp extends StatefulWidget {
   static QuickApp? _instance = QuickApp();
   static QuickApp Instance() {
     _instance ??= QuickApp();
     return _instance!;
   }
   const QuickApp({super.key});
+
+  @override
+  State<QuickApp> createState() => _QuickAppState();
+}
+
+class _QuickAppState extends State<QuickApp> {
+  final GlobalKey _containerKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Schedule the height measurement after the widget is built and displayed
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _measureWidgetHeight();
+    });
+  }
+
+  Future<void> _measureWidgetHeight() async {
+    final RenderBox? renderBox = _containerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final height = renderBox.size.height;
+      final width = renderBox.size.width;
+      
+      print('QuickApp widget height: ${height}px');
+      // Update the window size to match the widget height
+      await windowManager.setSize(Size(width, height), animate: false);
+      await windowManager.setPosition(Offset(10, 10), animate: false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +251,7 @@ class QuickApp extends StatelessWidget {
         backgroundColor: Colors.transparent,
         body: Center(
           child: Container(
+            key: _containerKey,
             margin: const EdgeInsets.all(20),
             child: Stack(
               children: [
