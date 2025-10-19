@@ -78,12 +78,13 @@ void main(List<String> args) async {
               'args1': 'Sub window',
             }),
           );
-        quickWindowCtrl!
-          ..setFrame(const Offset(0, 0) & const Size(800, 800))
-          ..center()
+        //  await DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
+          await quickWindowCtrl!.setFrame(const Offset(-99999, -99999) & const Size(800, 800));
+          // await quickWindowCtrl!.center();
           // ..setTitle('Another window')
-          ..show();
-        DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
+          await quickWindowCtrl!.show();
+          await DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
+          
       },
       // Only works on macOS.
       keyUpHandler: (hotKey) {
@@ -92,7 +93,7 @@ void main(List<String> args) async {
     );
   }
   if (!isMainWindow) {
-    runApp(QuickApp.Instance());
+    runApp(const QuickApp());
   } else {
     runApp(const MyApp());
   }

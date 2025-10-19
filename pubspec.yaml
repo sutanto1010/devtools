@@ -69,6 +69,7 @@ dependencies:
   re_editor: ^0.8.0
   re_highlight: ^0.0.3
   hotkey_manager: ^0.2.3
+  # desktop_multi_window: ^0.2.1
   desktop_multi_window: 
     path: ../flutter-plugins/packages/desktop_multi_window
   desktop_lifecycle: 0.1.1

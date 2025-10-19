@@ -6,11 +6,6 @@ import 'package:flutter/src/services/message_codec.dart';
 import 'package:window_manager/window_manager.dart';
 
 class QuickApp extends StatefulWidget {
-  static QuickApp? _instance = QuickApp();
-  static QuickApp Instance() {
-    _instance ??= QuickApp();
-    return _instance!;
-  }
   const QuickApp({super.key});
 
   @override
@@ -20,6 +15,7 @@ class QuickApp extends StatefulWidget {
 
 class _QuickAppState extends State<QuickApp> {
   final GlobalKey _containerKey = GlobalKey();
+  final TextEditingController _textController = TextEditingController();
   String selectedText = '';
   @override
   void initState() {
@@ -78,8 +74,11 @@ class _QuickAppState extends State<QuickApp> {
                           ),
                           const SizedBox(height: 12),
                           TextField(
+                            controller: _textController,
+                            autofocus: true,
                             decoration: InputDecoration(
                               hintText: 'Enter text',
+                              border: OutlineInputBorder(),
                             ),
                           ),
                         ],
@@ -125,6 +124,12 @@ class _QuickAppState extends State<QuickApp> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   Future multiWindowHandler(MethodCall call, int fromWindowId) async {
