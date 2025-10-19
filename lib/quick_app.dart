@@ -72,6 +72,14 @@ class _QuickAppState extends State<QuickApp> {
                               color: Colors.deepPurple,
                             ),
                           ),
+                          MaterialButton(
+                            onPressed: () async {
+                             setState(() {
+                               selectedText = "Hello random text"+DateTime.now().toString();
+                             });
+                            },
+                            child: const Text('Close'),
+                          ),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _textController,
@@ -144,6 +152,7 @@ class _QuickAppState extends State<QuickApp> {
     final y = cursorY-size.height;
     await windowManager.setSize(size, animate: false);
     await windowManager.setPosition(Offset(x, y), animate: false);
+    await windowManager.focus();
     setState(() {
       selectedText = text;
     });

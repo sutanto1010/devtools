@@ -72,7 +72,7 @@ void main(List<String> args) async {
         }
         final data = await GlobalSelectionService.getSelectedTextWithCursor();
         print('selectedData text: ${data?.text} cursorX: ${data?.cursorX} cursorY: ${data?.cursorY}');
-        windowManager.hide();
+        // windowManager.hide();
         quickWindowCtrl ??= await DesktopMultiWindow.createWindow(
             jsonEncode({
               'args1': 'Sub window',
@@ -99,6 +99,8 @@ void main(List<String> args) async {
   }
   
 }
+
+AppLifecycleListener? _appLifecycleListener;
 
 class MyApp extends StatelessWidget with WindowListener {
   const MyApp({super.key});
