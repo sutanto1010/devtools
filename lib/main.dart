@@ -8,6 +8,7 @@ import 'package:devtools/services/pub_sub_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:multi_window_native/multi_window_native.dart';
 
 import 'package:window_manager/window_manager.dart'; // Add this import
 import 'pages/home_page.dart';
@@ -21,7 +22,9 @@ import 'package:highlight/languages/yaml.dart';
 import 'package:highlight/languages/go.dart';
 import 'package:highlight/highlight_core.dart' show highlight;
 
+
 WindowController? quickWindowCtrl;
+@pragma('vm:entry-point')
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   print('args: $args Length: ${args.length}');
@@ -73,17 +76,22 @@ void main(List<String> args) async {
         final data = await GlobalSelectionService.getSelectedTextWithCursor();
         print('selectedData text: ${data?.text} cursorX: ${data?.cursorX} cursorY: ${data?.cursorY}');
         // windowManager.hide();
-        quickWindowCtrl ??= await DesktopMultiWindow.createWindow(
-            jsonEncode({
-              'args1': 'Sub window',
-            }),
-          );
+        // quickWindowCtrl ??= await DesktopMultiWindow.createWindow(
+        //     jsonEncode({
+        //       'args1': 'Sub window',
+        //     }),
+        //   );
         //  await DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
-          await quickWindowCtrl!.setFrame(const Offset(-99999, -99999) & const Size(800, 800));
+          // await quickWindowCtrl!.setFrame(const Offset(-99999, -99999) & const Size(800, 800));
           // await quickWindowCtrl!.center();
-          // ..setTitle('Another window')
-          await quickWindowCtrl!.show();
-          await DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
+          // // ..setTitle('Another window')
+          // await quickWindowCtrl!.show();
+          // await DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
+        await MultiWindowNative.createWindow([
+          'secondScreen', 
+          '{}',    
+          "foo"
+        ]);
           
       },
       // Only works on macOS.
@@ -91,22 +99,37 @@ void main(List<String> args) async {
         print('onKeyUp+${hotKey.toJson()}');
       },
     );
+  }else{
+     WindowOptions windowOptions = const WindowOptions(
+      size: Size(1200, 800),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: true,
+      titleBarStyle: TitleBarStyle.hidden,
+      title: 'Quick App',
+      windowButtonVisibility: false,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      // await windowManager.show();
+      // await windowManager.focus();
+    });
   }
-  if (!isMainWindow) {
-    runApp(const QuickApp());
-  } else {
-    runApp(const MyApp());
-  }
-  
+  int windowId = await windowManager.getId();
+  MultiWindowNative.init(windowId);
+  runApp(MyApp(args: args,));
 }
 
 AppLifecycleListener? _appLifecycleListener;
 
 class MyApp extends StatelessWidget with WindowListener {
-  const MyApp({super.key});
+  final List<String> args;
+  const MyApp({super.key, required this.args});
 
   @override
   Widget build(BuildContext context) {
+    if(args.isNotEmpty) {
+      return const QuickApp();
+    }
     return MaterialApp(
       title: 'Dev Tools',
       theme: ThemeData(

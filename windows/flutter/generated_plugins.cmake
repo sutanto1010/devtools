@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_multi_window
   hotkey_manager_windows
   irondash_engine_context
+  multi_window_native
   openpgp
   screen_capturer_windows
   screen_retriever_windows

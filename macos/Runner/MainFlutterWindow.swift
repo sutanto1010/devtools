@@ -22,6 +22,7 @@ import tray_manager
 import url_launcher_macos
 import webview_flutter_wkwebview
 import window_manager
+import multi_window_native
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
@@ -32,6 +33,7 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    /*
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
         ClipboardWatcherPlugin.register(with: controller.registrar(forPlugin: "ClipboardWatcherPlugin"))
         DesktopLifecyclePlugin.register(with: controller.registrar(forPlugin: "DesktopLifecyclePlugin"))
@@ -53,7 +55,12 @@ class MainFlutterWindow: NSWindow {
         WebViewFlutterPlugin.register(with: controller.registrar(forPlugin: "WebViewFlutterPlugin"))
         WindowManagerPlugin.register(with: controller.registrar(forPlugin: "WindowManagerPlugin"))
     }
-
+    */
+     MultiWindowNativePlugin.onEngineCreatedCallback = { engine in
+        print("📌 New secondary engine created: \(engine)")
+        // Register all plugins for the new engine
+        RegisterGeneratedPlugins(registry: engine)
+    }
     // Set up method channel to fetch selected text from any app via macOS Accessibility API
     let channel = FlutterMethodChannel(name: "global_text_selection",
                                        binaryMessenger: flutterViewController.engine.binaryMessenger)

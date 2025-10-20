@@ -12,6 +12,7 @@ import device_info_plus
 import file_picker
 import hotkey_manager_macos
 import irondash_engine_context
+import multi_window_native
 import openpgp
 import package_info_plus
 import path_provider_foundation
@@ -33,6 +34,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   HotkeyManagerMacosPlugin.register(with: registry.registrar(forPlugin: "HotkeyManagerMacosPlugin"))
   IrondashEngineContextPlugin.register(with: registry.registrar(forPlugin: "IrondashEngineContextPlugin"))
+  MultiWindowNativePlugin.register(with: registry.registrar(forPlugin: "MultiWindowNativePlugin"))
   OpenpgpPlugin.register(with: registry.registrar(forPlugin: "OpenpgpPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
