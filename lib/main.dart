@@ -24,6 +24,7 @@ import 'package:highlight/highlight_core.dart' show highlight;
 
 
 WindowController? quickWindowCtrl;
+int quickWindowId = -1;
 @pragma('vm:entry-point')
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,16 +88,14 @@ void main(List<String> args) async {
           // // ..setTitle('Another window')
           // await quickWindowCtrl!.show();
           // await DesktopMultiWindow.invokeMethod(1, "quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
-        await MultiWindowNative.createWindow([
-          'secondScreen', 
-          '{}',    
-          "foo"
-        ]);
-          
-      },
-      // Only works on macOS.
-      keyUpHandler: (hotKey) {
-        print('onKeyUp+${hotKey.toJson()}');
+          final windowCount = await MultiWindowNative.windowCount();
+          if(windowCount == 0) {
+             await MultiWindowNative.createWindow([
+                'secondScreen', 
+                '{}',    
+                "foo"
+              ]);
+          }
       },
     );
   }else{
@@ -115,6 +114,9 @@ void main(List<String> args) async {
     });
   }
   int windowId = await windowManager.getId();
+  if(!isMainWindow) {
+    quickWindowId = windowId;
+  }
   MultiWindowNative.init(windowId);
   runApp(MyApp(args: args,));
 }
