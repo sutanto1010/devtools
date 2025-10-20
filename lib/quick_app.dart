@@ -3,6 +3,7 @@ import 'package:devtools/balloon_tip_painter.dart';
 import 'package:devtools/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/services/message_codec.dart';
+import 'package:multi_window_native/multi_window_native.dart';
 import 'package:window_manager/window_manager.dart';
 
 class QuickApp extends StatefulWidget {
@@ -23,7 +24,8 @@ class _QuickAppState extends State<QuickApp> {
     // Schedule the height measurement after the widget is built and displayed
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _measureWidgetHeight();
-      DesktopMultiWindow.setMethodHandler(multiWindowHandler);
+      // DesktopMultiWindow.setMethodHandler(multiWindowHandler);
+      MultiWindowNative.registerListener("quickWindow", nativeWindowHandler);
     });
   }
 
@@ -149,6 +151,24 @@ class _QuickAppState extends State<QuickApp> {
     print('multiWindowHandler: ${call.method} text: $text cursorX: $cursorX cursorY: $cursorY');
     final size = await _measureWidgetHeight();
     await windowManager.setSize(size, animate: false);
+    final x = cursorX - size.width / 2;
+    final y = cursorY-size.height;
+    await windowManager.setSize(size, animate: false);
+    await windowManager.setPosition(Offset(x, y), animate: false);
+    await windowManager.focus();
+    setState(() {
+      selectedText = text;
+    });
+  }
+
+  Future nativeWindowHandler(MethodCall call) async {
+    final text = call.arguments[0] as String;
+    final cursorX = call.arguments[1] as double;
+    final cursorY = call.arguments[2] as double;
+
+    print('nativeWindowHandler: ${call.method} text: $text cursorX: $cursorX cursorY: $cursorY');
+    final size = await _measureWidgetHeight();
+    // await windowManager.setSize(size, animate: false);
     final x = cursorX - size.width / 2;
     final y = cursorY-size.height;
     await windowManager.setSize(size, animate: false);

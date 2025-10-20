@@ -95,6 +95,8 @@ void main(List<String> args) async {
                 '{}',    
                 "foo"
               ]);
+          }else{
+            await MultiWindowNative.notifyAllWindows("quickWindow",[data?.text,data?.cursorX,data?.cursorY]);
           }
       },
     );
