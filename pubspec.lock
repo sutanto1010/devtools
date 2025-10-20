@@ -578,7 +578,7 @@ packages:
   multi_window_native:
     dependency: "direct main"
     description:
-      path: "../multi_window_native"
+      path: "../flutter-plugins/multi_window_native"
       relative: true
     source: path
     version: "1.0.3"

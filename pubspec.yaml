@@ -74,7 +74,7 @@ dependencies:
     path: ../flutter-plugins/packages/desktop_multi_window
   desktop_lifecycle: 0.1.1
   multi_window_native:
-    path: ../multi_window_native
+    path: ../flutter-plugins/multi_window_native
   # multi_window_native: ^1.0.4
 dev_dependencies:
   flutter_test:
