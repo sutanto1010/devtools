@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:devtools/balloon_tip_painter.dart';
 import 'package:devtools/quick_app.dart';
 import 'package:devtools/services/global_selection.dart';
@@ -23,7 +22,6 @@ import 'package:highlight/languages/go.dart';
 import 'package:highlight/highlight_core.dart' show highlight;
 
 
-WindowController? quickWindowCtrl;
 int quickWindowId = -1;
 @pragma('vm:entry-point')
 void main(List<String> args) async {
@@ -105,7 +103,7 @@ void main(List<String> args) async {
       size: Size(1200, 800),
       center: true,
       backgroundColor: Colors.transparent,
-      skipTaskbar: true,
+      skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
       title: 'Quick App',
       windowButtonVisibility: false,

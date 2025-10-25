@@ -1,4 +1,3 @@
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:devtools/balloon_tip_painter.dart';
 import 'package:devtools/main.dart';
 import 'package:flutter/material.dart';
@@ -171,7 +170,7 @@ class _QuickAppState extends State<QuickApp> {
     // await windowManager.setSize(size, animate: false);
     final x = cursorX - size.width / 2;
     final y = cursorY-size.height;
-    await windowManager.setSize(size, animate: false);
+    // await windowManager.setSize(size, animate: false);
     await windowManager.setPosition(Offset(x, y), animate: false);
     await windowManager.focus();
     setState(() {

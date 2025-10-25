@@ -8,7 +8,6 @@
 
 #include <clipboard_watcher/clipboard_watcher_plugin.h>
 #include <desktop_lifecycle/desktop_lifecycle_plugin.h>
-#include <desktop_multi_window/desktop_multi_window_plugin.h>
 #include <hotkey_manager_windows/hotkey_manager_windows_plugin_c_api.h>
 #include <irondash_engine_context/irondash_engine_context_plugin_c_api.h>
 #include <multi_window_native/multi_window_native_plugin.h>
@@ -25,8 +24,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("ClipboardWatcherPlugin"));
   DesktopLifecyclePluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DesktopLifecyclePlugin"));
-  DesktopMultiWindowPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("DesktopMultiWindowPlugin"));
   HotkeyManagerWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("HotkeyManagerWindowsPluginCApi"));
   IrondashEngineContextPluginCApiRegisterWithRegistrar(
