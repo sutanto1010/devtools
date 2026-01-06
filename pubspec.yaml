@@ -37,7 +37,7 @@ dependencies:
   path: ^1.8.3
   tray_manager: ^0.5.1
   window_manager: ^0.5.1  # Add this line
-  package_info_plus: ^8.0.0
+  package_info_plus: ^9.0.0
   network_tools: ^6.0.5
   material_table_view: ^5.5.2
   redis: ^4.0.0
@@ -85,7 +85,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

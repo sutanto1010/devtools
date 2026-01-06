@@ -156,10 +156,7 @@ class WelcomeScreen extends StatelessWidget {
                   runSpacing: 12,
                   children: recentTools.take(4).map((tool) {
                     return ActionChip(
-                      avatar: Icon(
-                        IconData(tool['iconCodePoint'], fontFamily: 'MaterialIcons'),
-                        size: 18,
-                      ),
+                      avatar: const Icon(Icons.apps, size: 18),
                       label: Text(tool['title']),
                       onPressed: () {
                         onNavigateToHistoryItem(tool);
