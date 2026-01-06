@@ -1,3 +1,4 @@
+rm -f DevTools.dmg
 flutter clean
 flutter build macos --no-tree-shake-icons
-sudo appdmg appdmg.json DevTools.dmg
+appdmg appdmg.json DevTools.dmg
